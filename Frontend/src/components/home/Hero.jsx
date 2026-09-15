@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
 
 /**
  * DevTalks hero section — DevKraft club
@@ -8,9 +9,6 @@ import { useEffect, useRef } from "react";
  * are what power classes like `bg-app-bg`, `text-primary`, `bg-primary`,
  * `border-border-orange`, `shadow-orange`, `rounded-lg` and so on below —
  * nothing here is hard-coded to a hex value.
- *
- * Swap the <a href="/guess"> for your router's <Link> if you're on
- * Next.js / React Router.
  */
 export default function HeroSection() {
   const heroRef = useRef(null);
@@ -134,23 +132,7 @@ export default function HeroSection() {
           you&apos;re guessing.
         </p>
 
-        <a
-          href="/guess"
-          className="group inline-flex items-center gap-2.5 rounded-lg bg-primary px-8 py-4 font-semibold text-text-dark shadow-orange transition-all duration-300 ease-out hover:-translate-y-0.5 hover:bg-primary-light hover:shadow-[0_0_56px_rgba(255,90,31,0.35)] active:translate-y-0"
-        >
-          Guess the speaker
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="h-[18px] w-[18px] transition-transform duration-300 group-hover:translate-x-0.5"
-          >
-            <path d="M9 5l7 7-7 7" />
-          </svg>
-        </a>
+        <GuessButton />
       </div>
 
       <style>{`
@@ -188,15 +170,78 @@ export default function HeroSection() {
         .devtalks-f5 { animation: devtalks-drift 13s cubic-bezier(0.16,1,0.3,1) infinite; }
         .devtalks-f6 { animation: devtalks-drift-slow 12s cubic-bezier(0.16,1,0.3,1) infinite; }
 
+        @keyframes devtalks-btn-sheen {
+          0%   { transform: translateX(-130%) skewX(-18deg); }
+          100% { transform: translateX(230%) skewX(-18deg); }
+        }
+        .devtalks-btn-sheen { animation: devtalks-btn-sheen 3.2s ease-in-out infinite; }
+
+        @keyframes devtalks-btn-ring {
+          0%   { transform: scale(0.92); opacity: 0.55; }
+          100% { transform: scale(1.35); opacity: 0; }
+        }
+        .devtalks-btn-ring { animation: devtalks-btn-ring 2.2s cubic-bezier(0.16,1,0.3,1) infinite; }
+
         @media (prefers-reduced-motion: reduce) {
           .devtalks-pulse-dot, .devtalks-sway, .devtalks-ring-pulse,
-          .devtalks-f1, .devtalks-f2, .devtalks-f3, .devtalks-f4, .devtalks-f5, .devtalks-f6 {
+          .devtalks-f1, .devtalks-f2, .devtalks-f3, .devtalks-f4, .devtalks-f5, .devtalks-f6,
+          .devtalks-btn-sheen, .devtalks-btn-ring {
             animation-duration: 0.01ms !important;
             animation-iteration-count: 1 !important;
           }
         }
       `}</style>
     </section>
+  );
+}
+
+/**
+ * Primary CTA — a layered, "stage light" button rather than a flat pill:
+ * pulsing outer ring, gradient fill, a light sheen that sweeps across on
+ * a loop, and a live-status microcopy line underneath for social proof.
+ */
+function GuessButton() {
+  return (
+    <div className="flex flex-col items-center gap-3">
+      <Link
+        to="/guess"
+        className="group relative inline-flex items-center gap-2.5 overflow-hidden rounded-lg px-9 py-4 font-semibold text-text-dark shadow-orange outline-none transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[0_0_64px_rgba(255,90,31,0.45)] focus-visible:ring-2 focus-visible:ring-primary-light focus-visible:ring-offset-2 focus-visible:ring-offset-app-bg active:translate-y-0"
+        style={{
+          backgroundImage:
+            "linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-primary) 60%, var(--color-primary) 100%)",
+        }}
+      >
+        {/* pulsing outer ring, echoes the mic ring above */}
+        <span className="devtalks-btn-ring pointer-events-none absolute inset-0 rounded-lg border border-primary-light" />
+
+        {/* light sheen sweeping across the button on a loop */}
+        <span
+          className="devtalks-btn-sheen pointer-events-none absolute inset-y-0 left-0 w-1/3 opacity-60"
+          style={{
+            background:
+              "linear-gradient(90deg, transparent, rgba(255,255,255,0.55), transparent)",
+          }}
+        />
+
+        <span className="relative">Guess the speaker</span>
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="relative h-[18px] w-[18px] transition-transform duration-300 group-hover:translate-x-1"
+        >
+          <path d="M9 5l7 7-7 7" />
+        </svg>
+      </Link>
+
+      <p className="inline-flex items-center gap-1.5 text-xs text-text-muted">
+        <span className="devtalks-pulse-dot h-1.5 w-1.5 rounded-full bg-primary" />
+        Live leaderboard open — no sign-up to play
+      </p>
+    </div>
   );
 }
 

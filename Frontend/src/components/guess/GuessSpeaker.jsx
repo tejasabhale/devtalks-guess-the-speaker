@@ -39,10 +39,10 @@ const SLOTS = [
   },
 ];
 
+const META_ITEMS = ["REVEAL STATUS: LOCKED", "LIVE LEADERBOARD OPEN"];
+
 function randomResponse() {
-  return RESPONSES[
-    Math.floor(Math.random() * RESPONSES.length)
-  ];
+  return RESPONSES[Math.floor(Math.random() * RESPONSES.length)];
 }
 
 function SpeakerCard({ slot, index }) {
@@ -86,11 +86,9 @@ function SpeakerCard({ slot, index }) {
 
     const rect = element.getBoundingClientRect();
 
-    const px =
-      (event.clientX - rect.left) / rect.width - 0.5;
+    const px = (event.clientX - rect.left) / rect.width - 0.5;
 
-    const py =
-      (event.clientY - rect.top) / rect.height - 0.5;
+    const py = (event.clientY - rect.top) / rect.height - 0.5;
 
     setTilt({
       x: px * -6,
@@ -98,12 +96,8 @@ function SpeakerCard({ slot, index }) {
     });
 
     setPointer({
-      x:
-        ((event.clientX - rect.left) / rect.width) *
-        100,
-      y:
-        ((event.clientY - rect.top) / rect.height) *
-        100,
+      x: ((event.clientX - rect.left) / rect.width) * 100,
+      y: ((event.clientY - rect.top) / rect.height) * 100,
     });
   }
 
@@ -132,8 +126,7 @@ function SpeakerCard({ slot, index }) {
       onClick={handleCardClick}
       className="guess-card group relative flex flex-col overflow-hidden rounded-[var(--radius-md)] border border-border bg-app-bg-secondary shadow-[var(--shadow-card)] transition-[box-shadow,border-color] duration-300 ease-out hover:border-border-orange hover:shadow-[0_24px_70px_rgba(0,0,0,0.55)]"
       style={{
-        animation:
-          "guess-card-in 560ms cubic-bezier(0.16,1,0.3,1) both",
+        animation: "guess-card-in 560ms cubic-bezier(0.16,1,0.3,1) both",
         animationDelay: `${index * 90}ms`,
         transform: `perspective(900px) rotateX(${tilt.y}deg) rotateY(${tilt.x}deg)`,
         "--pointer-x": `${pointer.x}%`,
@@ -164,18 +157,9 @@ function SpeakerCard({ slot, index }) {
               className="absolute inset-0 h-full w-full transition-transform duration-700 ease-out group-hover:scale-[1.025]"
               aria-hidden="true"
             >
-              <rect
-                width="200"
-                height="250"
-                fill="var(--color-bg-secondary)"
-              />
+              <rect width="200" height="250" fill="var(--color-bg-secondary)" />
 
-              <circle
-                cx="100"
-                cy="95"
-                r="42"
-                fill="var(--color-bg-elevated)"
-              />
+              <circle cx="100" cy="95" r="42" fill="var(--color-bg-elevated)" />
 
               <path
                 d="M30 250c0-55 31.3-95 70-95s70 40 70 95"
@@ -220,9 +204,7 @@ function SpeakerCard({ slot, index }) {
         <div className="absolute left-3 top-3 z-10 flex items-center gap-1.5 rounded-full border border-border-light bg-app-bg/75 px-2.5 py-1 font-mono text-[11px] text-text-secondary backdrop-blur-sm">
           <span
             className={`h-1.5 w-1.5 rounded-full ${
-              isRevealed
-                ? "bg-success"
-                : "bg-primary pulse-dot"
+              isRevealed ? "bg-success" : "bg-primary pulse-dot"
             }`}
           />
 
@@ -252,17 +234,13 @@ function SpeakerCard({ slot, index }) {
                 <li
                   key={clue}
                   className={`clue-line flex gap-2 text-xs leading-snug text-text-secondary ${
-                    clueOpen
-                      ? "clue-line-in"
-                      : ""
+                    clueOpen ? "clue-line-in" : ""
                   }`}
                   style={{
                     transitionDelay: `${clueIndex * 70}ms`,
                   }}
                 >
-                  <span className="mt-0.5 text-primary">
-                    ›
-                  </span>
+                  <span className="mt-0.5 text-primary">›</span>
 
                   <span>{clue}</span>
                 </li>
@@ -279,18 +257,10 @@ function SpeakerCard({ slot, index }) {
       </div>
 
       <div className="relative flex flex-1 flex-col gap-4 p-5">
-        <span className="font-mono text-xs text-text-muted">
-          {slot.label}
-        </span>
+        <span className="font-mono text-xs text-text-muted">{slot.label}</span>
 
-        <form
-          onSubmit={handleSubmit}
-          className="flex flex-col gap-2"
-        >
-          <label
-            htmlFor={slot.id}
-            className="sr-only"
-          >
+        <form onSubmit={handleSubmit} className="flex flex-col gap-2">
+          <label htmlFor={slot.id} className="sr-only">
             Guess who this is
           </label>
 
@@ -299,9 +269,7 @@ function SpeakerCard({ slot, index }) {
               id={slot.id}
               type="text"
               value={guess}
-              onChange={(event) =>
-                setGuess(event.target.value)
-              }
+              onChange={(event) => setGuess(event.target.value)}
               placeholder="Type your guess"
               disabled={status === "scanning"}
               className="w-full rounded-md border border-border bg-app-bg-primary px-3 py-2 text-sm text-text-primary placeholder:text-text-muted transition-[border-color,box-shadow] duration-200 focus:border-primary-light focus-visible:outline-2 focus-visible:outline-primary-light disabled:opacity-60"
@@ -314,9 +282,7 @@ function SpeakerCard({ slot, index }) {
             >
               <span
                 className={`inline-flex items-center gap-1.5 transition-opacity duration-150 ${
-                  status === "scanning"
-                    ? "opacity-0"
-                    : "opacity-100"
+                  status === "scanning" ? "opacity-0" : "opacity-100"
                 }`}
               >
                 Guess
@@ -585,37 +551,92 @@ function SpeakerCard({ slot, index }) {
 
 export default function GuessSpeakers() {
   return (
-    <section className="relative bg-app-bg-primary px-6 py-24">
-      <div className="mx-auto max-w-5xl">
+    <section className="relative w-full overflow-hidden bg-app-bg-primary px-6 py-24 sm:px-10 lg:px-16 xl:px-24">
+      <SectionBackdrop />
+
+      <div className="relative z-10 mx-auto w-full max-w-[1800px]">
+        {/* Eyebrow badge, matches the Hero's language */}
         <div
-          className="mb-12 max-w-lg"
+          className="mb-6 inline-flex items-center gap-2 rounded-full border border-border-light bg-app-bg/70 px-3 py-1 font-mono text-[11px] uppercase tracking-widest text-text-secondary backdrop-blur-sm"
           style={{
-            animation:
-              "guess-card-in 560ms cubic-bezier(0.16,1,0.3,1) both",
+            animation: "guess-card-in 560ms cubic-bezier(0.16,1,0.3,1) both",
           }}
         >
-          <h2 className="text-3xl font-semibold text-text-primary sm:text-4xl">
-            Three names. Zero confirmations.
-          </h2>
-
-          <p className="mt-3 text-text-secondary">
-            Each card holds one DevTalks speaker.
-            Hover a card for evidence on desktop, tap
-            it on mobile, then submit a guess — right
-            or wrong, DevKraft is keeping count.
-          </p>
+          <span className="pulse-dot h-1.5 w-1.5 rounded-full bg-primary" />
+          Guess the lineup
         </div>
 
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="flex flex-col justify-between gap-8 border-b border-border pb-10 lg:flex-row lg:items-end">
+          <div
+            className="max-w-2xl"
+            style={{
+              animation: "guess-card-in 560ms cubic-bezier(0.16,1,0.3,1) both",
+              animationDelay: "60ms",
+            }}
+          >
+            <h2 className="text-3xl font-semibold leading-tight text-text-primary sm:text-4xl lg:text-5xl">
+              Three names. Zero confirmations.
+            </h2>
+
+            <p className="mt-4 max-w-xl text-base leading-relaxed text-text-secondary sm:text-lg">
+              Each card holds one DevTalks speaker. Hover a card for evidence on
+              desktop, tap it on mobile, then submit a guess — right or wrong,
+              DevKraft is keeping count.
+            </p>
+          </div>
+
+          {/* Status meta, echoes the Hero + Footer for continuity */}
+          <div
+            className="flex flex-wrap items-center gap-x-3 gap-y-2 font-mono text-[11px] uppercase tracking-widest text-text-muted lg:justify-end"
+            style={{
+              animation: "guess-card-in 560ms cubic-bezier(0.16,1,0.3,1) both",
+              animationDelay: "120ms",
+            }}
+          >
+            {META_ITEMS.map((item, index) => (
+              <span key={item} className="flex items-center gap-3">
+                <span className="flex items-center gap-2">
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary/70" />
+                  {item}
+                </span>
+                {index < META_ITEMS.length - 1 && (
+                  <span className="text-border-light">|</span>
+                )}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {SLOTS.map((slot, index) => (
-            <SpeakerCard
-              key={slot.id}
-              slot={slot}
-              index={index}
-            />
+            <SpeakerCard key={slot.id} slot={slot} index={index} />
           ))}
         </div>
       </div>
     </section>
+  );
+}
+
+/** Faint stage-floor grid + ambient glow, ties this section back to the Hero/Loader. */
+function SectionBackdrop() {
+  return (
+    <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
+      <div
+        className="absolute inset-0 opacity-30"
+        style={{
+          backgroundImage:
+            "linear-gradient(var(--color-border-light) 1px, transparent 1px), linear-gradient(90deg, var(--color-border-light) 1px, transparent 1px)",
+          backgroundSize: "64px 64px",
+          maskImage:
+            "radial-gradient(ellipse 80% 60% at 50% 0%, black 0%, transparent 70%)",
+          WebkitMaskImage:
+            "radial-gradient(ellipse 80% 60% at 50% 0%, black 0%, transparent 70%)",
+        }}
+      />
+      <div
+        className="absolute left-1/2 top-0 h-[380px] w-[720px] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-60 blur-[140px]"
+        style={{ backgroundColor: "rgba(255, 90, 31, 0.16)" }}
+      />
+    </div>
   );
 }

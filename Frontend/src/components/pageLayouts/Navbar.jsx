@@ -10,6 +10,27 @@ const NAV_LINKS = [
 
 const EASE = [0.16, 1, 0.3, 1];
 
+// Wordmark font: a geometric, slightly technical display face reads as
+// "stage tech event" without tipping into a generic corporate sans.
+// Loaded once at runtime so this component stays drop-in — no need to
+// hand-edit index.html. Safe to remove this block if the font is
+// already wired up globally.
+const WORDMARK_FONT_ID = "devtalks-wordmark-font";
+const WORDMARK_FONT_HREF =
+  "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap";
+const WORDMARK_FONT_CLASS = "font-['Space_Grotesk']";
+
+function useWordmarkFont() {
+  useEffect(() => {
+    if (document.getElementById(WORDMARK_FONT_ID)) return;
+    const link = document.createElement("link");
+    link.id = WORDMARK_FONT_ID;
+    link.rel = "stylesheet";
+    link.href = WORDMARK_FONT_HREF;
+    document.head.appendChild(link);
+  }, []);
+}
+
 /**
  * Primary site navigation for DevTalks — Guess the Speaker.
  * Sticky, glassmorphic, cinematic orange/black identity.
@@ -25,6 +46,8 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const menuRef = useRef(null);
   const toggleRef = useRef(null);
+
+  useWordmarkFont();
 
   // Close the mobile menu whenever the route changes.
   useEffect(() => {
@@ -97,7 +120,7 @@ export default function Navbar() {
           {/* Mobile-only wordmark, centered independently of the mark above which stays left */}
           <Link
             to="/"
-            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-xl font-semibold tracking-tight text-[var(--color-text-primary)] md:hidden"
+            className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-xl font-semibold tracking-tight text-[var(--color-text-primary)] md:hidden ${WORDMARK_FONT_CLASS}`}
           >
             Dev<span className="text-[var(--color-primary)]">Talks</span>
           </Link>
@@ -188,7 +211,9 @@ function Logo({ onNavigate }) {
         alt="DevTalks"
         className="h-8 w-auto object-contain drop-shadow-[0_0_10px_rgba(0,0,0,0.35)] transition-opacity duration-200 group-hover:opacity-90"
       />
-      <span className="hidden text-xl font-semibold tracking-tight text-[var(--color-text-primary)] md:inline-flex">
+      <span
+        className={`hidden text-xl font-semibold tracking-tight text-[var(--color-text-primary)] md:inline-flex ${WORDMARK_FONT_CLASS}`}
+      >
         Dev
         <span className="text-[var(--color-primary)] transition-colors duration-200 group-hover:text-[var(--color-primary-light)]">
           Talks
@@ -268,19 +293,14 @@ function MobileLinks({ pathname }) {
               <span className="font-mono text-xs tracking-widest text-[var(--color-text-muted)]">
                 {String(index + 1).padStart(2, "0")}
               </span>
-              <span className="flex items-center gap-2">
-                <span
-                  className={`text-4xl font-semibold tracking-tight transition-colors duration-200 sm:text-5xl ${
-                    isActive
-                      ? "text-[var(--color-primary-light)]"
-                      : "text-[var(--color-text-primary)] group-hover:text-[var(--color-primary-light)]"
-                  }`}
-                >
-                  {link.label}
-                </span>
-                {isActive && (
-                  <span className="h-2 w-2 rounded-full bg-[var(--color-primary)] shadow-[var(--shadow-orange)]" />
-                )}
+              <span
+                className={`text-4xl font-semibold tracking-tight transition-colors duration-200 sm:text-5xl ${
+                  isActive
+                    ? "text-[var(--color-primary-light)]"
+                    : "text-[var(--color-text-primary)] group-hover:text-[var(--color-primary-light)]"
+                }`}
+              >
+                {link.label}
               </span>
             </Link>
           </motion.li>

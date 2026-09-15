@@ -1,11 +1,33 @@
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+
+// Wordmark font: same geometric display face used in the navbar, loaded
+// once at runtime so this component stays drop-in. If the navbar is
+// already mounted on the page, this is a no-op (checked by ID below).
+const WORDMARK_FONT_ID = "devtalks-wordmark-font";
+const WORDMARK_FONT_HREF =
+  "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap";
+const WORDMARK_FONT_CLASS = "font-['Space_Grotesk']";
+
+function useWordmarkFont() {
+  useEffect(() => {
+    if (document.getElementById(WORDMARK_FONT_ID)) return;
+    const link = document.createElement("link");
+    link.id = WORDMARK_FONT_ID;
+    link.rel = "stylesheet";
+    link.href = WORDMARK_FONT_HREF;
+    document.head.appendChild(link);
+  }, []);
+}
 
 /**
  * Site footer for DevTalks — Guess the Speaker.
  * Minimal: just the wordmark and a credit line.
  */
 export default function Footer() {
+  useWordmarkFont();
+
   return (
     <motion.footer
       initial={{ opacity: 0, y: 16 }}
@@ -24,7 +46,7 @@ export default function Footer() {
 
         <Link
           to="/"
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-base font-semibold tracking-tight text-[var(--color-text-primary)] sm:text-lg"
+          className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-base font-semibold tracking-tight text-[var(--color-text-primary)] sm:text-lg ${WORDMARK_FONT_CLASS}`}
         >
           Dev
           <span className="text-[var(--color-primary)]">Talks</span>

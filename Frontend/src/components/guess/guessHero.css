@@ -52,7 +52,13 @@
   top: -4%;
   left: 50%;
   width: calc(var(--fig) * 1.9);
-  height: 72%;
+  /* Height is a per-spot variable so smaller breakpoints can stretch
+     the cone further down — see the responsive block below. Figures
+     are sized off a clamp()'d width, which shrinks much faster than
+     viewport height does on narrow screens, so without this override
+     the beam's bright, widened base ends well above a small figure's
+     head instead of landing on it like it does at desktop sizes. */
+  height: var(--beam-h, 72%);
   transform-origin: 50% 0;
   background: linear-gradient(
     to bottom,
@@ -193,13 +199,20 @@
   opacity: 1;
 }
 
-/* ── Responsive: pull side speakers inward on narrow screens ─ */
+/* ── Responsive: pull side speakers inward, and stretch the beams
+   so they still reach down onto the (proportionally shorter) figures
+   the way they do on desktop ─────────────────────────────────── */
 @media (max-width: 640px) {
   .guess-hero__spot--left {
     --x: 7%;
+    --beam-h: 88%;
   }
   .guess-hero__spot--right {
     --x: 93%;
+    --beam-h: 88%;
+  }
+  .guess-hero__spot--center {
+    --beam-h: 84%;
   }
   .guess-hero__beam {
     filter: blur(5px);
@@ -210,6 +223,10 @@
   .guess-hero__spot--left,
   .guess-hero__spot--right {
     --fig: clamp(64px, 18vw, 84px);
+    --beam-h: 100%;
+  }
+  .guess-hero__spot--center {
+    --beam-h: 92%;
   }
 }
 

@@ -124,7 +124,7 @@ function SpeakerCard({ slot, index }) {
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       onClick={handleCardClick}
-      className="guess-card group relative flex flex-col overflow-hidden rounded-[var(--radius-md)] border border-border bg-app-bg-secondary shadow-[var(--shadow-card)] transition-[box-shadow,border-color] duration-300 ease-out hover:border-border-orange hover:shadow-[0_24px_70px_rgba(0,0,0,0.55)]"
+      className="guess-card group relative flex flex-col overflow-hidden rounded-[var(--radius-md)] border border-border bg-app-bg-secondary shadow-[var(--shadow-card)] transition-[box-shadow,border-color] duration-300 ease-out [@media(hover:hover)]:hover:border-border-orange [@media(hover:hover)]:hover:shadow-[0_24px_70px_rgba(0,0,0,0.55)]"
       style={{
         animation: "guess-card-in 560ms cubic-bezier(0.16,1,0.3,1) both",
         animationDelay: `${index * 90}ms`,
@@ -133,10 +133,10 @@ function SpeakerCard({ slot, index }) {
         "--pointer-y": `${pointer.y}%`,
       }}
     >
-      <div className="pointer-events-none absolute inset-0 z-30 rounded-[inherit] border border-primary/0 transition-[border-color,box-shadow] duration-500 group-hover:border-primary/20 group-hover:shadow-[inset_0_0_35px_rgba(255,90,31,0.06),0_0_30px_rgba(255,90,31,0.08)]" />
+      <div className="pointer-events-none absolute inset-0 z-30 rounded-[inherit] border border-primary/0 transition-[border-color,box-shadow] duration-500 [@media(hover:hover)]:group-hover:border-primary/20 [@media(hover:hover)]:group-hover:shadow-[inset_0_0_35px_rgba(255,90,31,0.06),0_0_30px_rgba(255,90,31,0.08)]" />
 
       <div
-        className="pointer-events-none absolute inset-0 z-20 hidden opacity-0 transition-opacity duration-500 group-hover:opacity-100 sm:block"
+        className="pointer-events-none absolute inset-0 z-20 hidden opacity-0 transition-opacity duration-500 [@media(hover:hover)]:group-hover:opacity-100 sm:block"
         style={{
           background:
             "radial-gradient(280px circle at var(--pointer-x) var(--pointer-y), rgba(255, 90, 31, 0.11), transparent 68%)",
@@ -148,13 +148,13 @@ function SpeakerCard({ slot, index }) {
           <img
             src="/speakers/placeholder.jpg"
             alt="Speaker portrait"
-            className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.035]"
+            className="h-full w-full object-cover transition-transform duration-700 ease-out [@media(hover:hover)]:group-hover:scale-[1.035]"
           />
         ) : (
           <>
             <svg
               viewBox="0 0 200 250"
-              className="absolute inset-0 h-full w-full transition-transform duration-700 ease-out group-hover:scale-[1.025]"
+              className="absolute inset-0 h-full w-full transition-transform duration-700 ease-out [@media(hover:hover)]:group-hover:scale-[1.025]"
               aria-hidden="true"
             >
               <rect width="200" height="250" fill="var(--color-bg-secondary)" />
@@ -192,7 +192,7 @@ function SpeakerCard({ slot, index }) {
             />
 
             <div
-              className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+              className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 [@media(hover:hover)]:group-hover:opacity-100"
               style={{
                 background:
                   "radial-gradient(240px circle at var(--pointer-x) var(--pointer-y), rgba(255,122,69,0.08), transparent 68%)",
@@ -217,12 +217,19 @@ function SpeakerCard({ slot, index }) {
           </div>
         )}
 
+        {/*
+          Evidence panel: visibility is driven ONLY by the `clueOpen` state,
+          which the card's onClick toggles. The hover reveal is scoped to
+          `(hover: hover)` devices so a tap on touchscreens can't leave the
+          panel stuck in a hovered state — that was why a second tap wasn't
+          closing it.
+        */}
         {!isRevealed && (
           <div
             className={`clue-panel absolute inset-0 z-10 flex flex-col justify-end bg-gradient-to-t from-app-bg via-app-bg/90 to-app-bg/10 p-4 backdrop-blur-[2px] transition-opacity duration-300 ease-out ${
               clueOpen
                 ? "pointer-events-auto opacity-100"
-                : "pointer-events-none opacity-0 group-hover:pointer-events-auto group-hover:opacity-100"
+                : "pointer-events-none opacity-0 [@media(hover:hover)]:group-hover:pointer-events-auto [@media(hover:hover)]:group-hover:opacity-100"
             }`}
           >
             <span className="mb-2 font-mono text-[10px] uppercase tracking-wide text-primary-light">
@@ -251,7 +258,7 @@ function SpeakerCard({ slot, index }) {
 
         {!isRevealed && (
           <div className="absolute bottom-3 right-3 z-10 flex items-center gap-1 rounded-full border border-border-light bg-app-bg/70 px-2 py-1 font-mono text-[10px] text-text-muted backdrop-blur-sm transition-opacity duration-300 group-hover:opacity-0 sm:hidden">
-            tap for evidence
+            {clueOpen ? "tap to hide" : "tap for evidence"}
           </div>
         )}
       </div>
@@ -487,20 +494,22 @@ function SpeakerCard({ slot, index }) {
           top: 78%;
         }
 
-        .guess-card:hover .speaker-particle-a {
-          animation: ember-a 3.4s ease-in-out infinite;
-        }
+        @media (hover: hover) {
+          .guess-card:hover .speaker-particle-a {
+            animation: ember-a 3.4s ease-in-out infinite;
+          }
 
-        .guess-card:hover .speaker-particle-b {
-          animation: ember-b 4s ease-in-out infinite 0.4s;
-        }
+          .guess-card:hover .speaker-particle-b {
+            animation: ember-b 4s ease-in-out infinite 0.4s;
+          }
 
-        .guess-card:hover .speaker-particle-c {
-          animation: ember-c 3.8s ease-in-out infinite 0.9s;
-        }
+          .guess-card:hover .speaker-particle-c {
+            animation: ember-c 3.8s ease-in-out infinite 0.9s;
+          }
 
-        .guess-card:hover .speaker-particle-d {
-          animation: ember-d 4.2s ease-in-out infinite 1.1s;
+          .guess-card:hover .speaker-particle-d {
+            animation: ember-d 4.2s ease-in-out infinite 1.1s;
+          }
         }
 
         .clue-line {
@@ -511,10 +520,16 @@ function SpeakerCard({ slot, index }) {
             transform 260ms ease-out;
         }
 
-        .group:hover .clue-line,
         .clue-line-in {
           opacity: 1;
           transform: translateY(0);
+        }
+
+        @media (hover: hover) {
+          .group:hover .clue-line {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
 
         .feedback-in {

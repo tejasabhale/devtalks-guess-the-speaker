@@ -1,737 +1,495 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
+import { motion } from "framer-motion";
 
-/**
- * Whole-card flip on the Y axis (horizontal).
- *
- * Three nested layers, one job each:
- *   .flip-scene  — perspective + entry animation + mouse handlers
- *   .tilt-layer  — pointer tilt only
- *   .flip-inner  — rotateY(180deg) flip
- *
- * Desktop:
- *   - Hover/focus flips the card.
- *
- * Mobile/touch:
- *   - Tapping the card toggles the flip.
- *   - Tapping the form/input/button does not flip the card.
- */
-
-const RESPONSES = [
-  "Your guess might be right — the signal's getting stronger.",
-  "Bold pick. The clues aren't ruling it out.",
-  "Interesting. That name keeps coming up in the guesses.",
-  "Not the most popular guess so far, which could mean something.",
-  "The countdown isn't talking, but your guess has been logged.",
-  "That's a name to watch. Check back after the reveal.",
-];
+const RESPONSES = {
+  correct: {
+    title: "Case Solved",
+    text: "You identified the speaker correctly.",
+  },
+  wrong: {
+    title: "Wrong Lead",
+    text: "The identity remains classified.",
+  },
+};
 
 const SLOTS = [
   {
-    id: "slot-01",
-    label: "SPEAKER_01",
+    id: 1,
+    number: "01",
+    title: "The Architect",
+    category: "TECHNOLOGY",
     clues: [
-      "Last commit was pushed at 2:14 AM, three days ago.",
-      "Bio mentions exactly one open-source project with 10k+ stars.",
-      "Has spoken at a DevTalks event before — just not this track.",
+      "First line of code was written as a teenager.",
+      "Has designed systems used by thousands of developers.",
+      "Known for turning complex engineering concepts into simple explanations.",
+      "Frequently speaks about scalable architecture and developer experience.",
+      "Believes great technology should feel invisible to the user.",
     ],
   },
   {
-    id: "slot-02",
-    label: "SPEAKER_02",
+    id: 2,
+    number: "02",
+    title: "The Strategist",
+    category: "STARTUP",
     clues: [
-      "Talk abstract was submitted under a working title, then renamed twice.",
-      "Travels in from a city with a direct flight to the venue.",
-      "Known for skipping slides and going straight to a live terminal.",
+      "Started with a small idea and built it into a growing venture.",
+      "Has worked with founders, early-stage teams, and young entrepreneurs.",
+      "Focuses heavily on solving real-world customer problems.",
+      "Often talks about leadership, execution, and building teams.",
+      "Believes consistency beats short bursts of motivation.",
     ],
   },
   {
-    id: "slot-03",
-    label: "SPEAKER_03",
+    id: 3,
+    number: "03",
+    title: "The Innovator",
+    category: "AI & INNOVATION",
     clues: [
-      "Coffee order on the speaker form: something with oat milk.",
-      "Has shipped something in production that most people here already use.",
-      "Once gave a talk that ran eleven minutes over — nobody minded.",
+      "Works at the intersection of artificial intelligence and real-world problems.",
+      "Has experimented with machine learning beyond simple demonstrations.",
+      "Regularly explores emerging technologies before they become mainstream.",
+      "Believes responsible experimentation is essential for innovation.",
+      "Often discusses AI, automation, creativity, and the future of work.",
     ],
   },
 ];
 
-const META_ITEMS = ["REVEAL STATUS: LOCKED", "LIVE LEADERBOARD OPEN"];
+const META_ITEMS = ["3 mystery speakers", "Multiple clues", "One final reveal"];
 
-function randomResponse() {
-  return RESPONSES[Math.floor(Math.random() * RESPONSES.length)];
+function Silhouette() {
+  return (
+    <svg
+      viewBox="0 0 220 300"
+      className="h-full w-full"
+      fill="none"
+      aria-hidden="true"
+    >
+      <circle cx="110" cy="67" r="43" fill="currentColor" opacity="0.9" />
+
+      <path
+        d="M54 164C54 131.967 79.967 106 112 106C144.033 106 170 131.967 170 164V278H54V164Z"
+        fill="currentColor"
+        opacity="0.92"
+      />
+
+      <path
+        d="M48 163C48 128.758 75.758 101 110 101C144.242 101 172 128.758 172 163"
+        stroke="currentColor"
+        strokeWidth="8"
+        strokeLinecap="round"
+        opacity="0.75"
+      />
+    </svg>
+  );
 }
 
-function SpeakerCard({ slot, index }) {
-  const [guess, setGuess] = useState("");
-  const [feedback, setFeedback] = useState("");
-  const [status, setStatus] = useState("idle");
-  const [clueOpen, setClueOpen] = useState(false);
-  const [tilt, setTilt] = useState({ x: 0, y: 0 });
+function SectionBackdrop() {
+  return (
+    <>
+      <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+        <div className="absolute inset-0 bg-radial-orange opacity-70" />
 
-  const cardRef = useRef(null);
-  const submitTimeoutRef = useRef(null);
+        <div
+          className="absolute inset-0 opacity-[0.035]"
+          style={{
+            backgroundImage:
+              "linear-gradient(to right, currentColor 1px, transparent 1px), linear-gradient(to bottom, currentColor 1px, transparent 1px)",
+            backgroundSize: "48px 48px",
+          }}
+        />
 
-  const isRevealed = false;
+        <div className="absolute inset-x-0 top-0 h-px bg-border-light" />
+        <div className="absolute inset-x-0 bottom-0 h-px bg-border-light" />
+      </div>
 
-  function handleSubmit(event) {
-    event.preventDefault();
+      <div className="pointer-events-none absolute left-1/2 top-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-[140px]" />
+    </>
+  );
+}
 
-    if (!guess.trim() || status === "scanning") {
-      return;
+function SpeakerCard({ speaker, index }) {
+  const [isFlipped, setIsFlipped] = useState(false);
+  const [selectedAnswer, setSelectedAnswer] = useState("");
+  const [response, setResponse] = useState(null);
+
+  const handlePointerEnter = (event) => {
+    if (event.pointerType === "mouse") {
+      setIsFlipped(true);
     }
+  };
 
-    setStatus("scanning");
-    setFeedback("");
-
-    submitTimeoutRef.current = window.setTimeout(() => {
-      setFeedback(randomResponse());
-      setStatus("done");
-    }, 650);
-  }
-
-  function handleMouseMove(event) {
-    const element = cardRef.current;
-
-    if (!element) {
-      return;
+  const handlePointerLeave = (event) => {
+    if (event.pointerType === "mouse") {
+      setIsFlipped(false);
     }
+  };
 
-    // Disable pointer tilt on touch/mobile devices.
-    if (!window.matchMedia("(hover: hover)").matches) {
-      return;
-    }
-
-    const rect = element.getBoundingClientRect();
-
-    const px = (event.clientX - rect.left) / rect.width - 0.5;
-    const py = (event.clientY - rect.top) / rect.height - 0.5;
-
-    setTilt({
-      x: px * -4,
-      y: py * 4,
-    });
-  }
-
-  function handleMouseLeave() {
-    setTilt({ x: 0, y: 0 });
-  }
-
-  function handleCardClick(event) {
-    // Desktop uses hover/focus to flip.
-    // Click-to-flip is only enabled for touch/mobile devices.
-    if (window.matchMedia("(hover: hover)").matches) {
-      return;
-    }
-
-    // Never flip while interacting with the guess form.
+  const toggleMobileFlip = (event) => {
     if (event.target.closest("form")) {
       return;
     }
 
-    setClueOpen((open) => !open);
-  }
+    if (event.target.closest("button")) {
+      return;
+    }
 
-  const faceClasses =
-    "flip-face absolute inset-0 overflow-hidden rounded-[var(--radius-md)] border border-border bg-app-bg-secondary transition-[border-color] duration-300 ease-out [@media(hover:hover)]:group-hover:border-border-orange";
+    if (event.pointerType !== "touch") {
+      return;
+    }
+
+    setIsFlipped((previous) => !previous);
+  };
+
+  const handleKeyDown = (event) => {
+    if (event.target.closest("form")) {
+      return;
+    }
+
+    if (event.target.closest("button")) {
+      return;
+    }
+
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      setIsFlipped((previous) => !previous);
+    }
+  };
+
+  const handleClose = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setIsFlipped(false);
+  };
+
+  const handleGuess = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const answer = selectedAnswer.trim();
+
+    if (!answer) {
+      return;
+    }
+
+    setResponse(
+      answer.toLowerCase() === speaker.title.toLowerCase()
+        ? "correct"
+        : "wrong",
+    );
+  };
+
+  const handleResponseClose = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setResponse(null);
+  };
 
   return (
-    <div
-      ref={cardRef}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      onClick={handleCardClick}
-      className={`flip-scene group relative h-[460px] rounded-[var(--radius-md)] shadow-[var(--shadow-card)] transition-shadow duration-300 ease-out sm:h-[480px] [@media(hover:hover)]:hover:shadow-[0_24px_70px_rgba(0,0,0,0.55)] ${
-        clueOpen ? "is-flipped" : ""
-      }`}
-      style={{
-        animation: "guess-card-in 560ms cubic-bezier(0.16,1,0.3,1) both",
-        animationDelay: `${index * 90}ms`,
+    <motion.article
+      initial={{ opacity: 0, y: 32 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.2 }}
+      transition={{
+        duration: 0.6,
+        delay: index * 0.12,
+        ease: [0.22, 1, 0.36, 1],
       }}
+      className="group relative"
     >
       <div
-        className="tilt-layer h-full w-full"
-        style={{
-          transform: `rotateX(${tilt.y}deg) rotateY(${tilt.x}deg)`,
-        }}
+        className="flip-scene relative h-[560px] w-full"
+        onPointerEnter={handlePointerEnter}
+        onPointerLeave={handlePointerLeave}
+        onPointerUp={toggleMobileFlip}
+        onKeyDown={handleKeyDown}
+        role="button"
+        tabIndex={0}
+        aria-expanded={isFlipped}
+        aria-label={
+          isFlipped
+            ? `Hide clues for ${speaker.title}`
+            : `Show clues for ${speaker.title}`
+        }
       >
-        <div className="flip-inner h-full w-full">
-          {/* ---------------- FRONT ---------------- */}
-          <div className={faceClasses}>
-            <div className="relative h-full w-full bg-app-bg-secondary">
-              {isRevealed ? (
-                <img
-                  src="/speakers/placeholder.jpg"
-                  alt="Speaker portrait"
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <>
-                  <svg
-                    viewBox="0 0 200 250"
-                    preserveAspectRatio="xMidYMid slice"
-                    className="absolute inset-0 h-full w-full"
-                    aria-hidden="true"
-                  >
-                    <rect
-                      width="200"
-                      height="250"
-                      fill="var(--color-bg-secondary)"
-                    />
+        <div
+          className={`flip-inner relative h-full w-full ${
+            isFlipped ? "is-flipped" : ""
+          }`}
+        >
+          {/* FRONT */}
+          <div className="flip-face flip-face-front absolute inset-0 overflow-hidden rounded-2xl border border-border-light bg-surface-light shadow-card">
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/80" />
 
-                    <circle
-                      cx="100"
-                      cy="95"
-                      r="42"
-                      fill="var(--color-bg-elevated)"
-                    />
+            <div className="absolute left-5 top-5 z-10 flex items-center gap-2 rounded-full border border-border-light bg-black/30 px-3 py-1.5 backdrop-blur-md">
+              <span className="font-mono text-[10px] tracking-[0.18em] text-text-muted">
+                FILE {speaker.number}
+              </span>
 
-                    <path
-                      d="M30 250c0-55 31.3-95 70-95s70 40 70 95"
-                      fill="var(--color-bg-elevated)"
-                    />
-                  </svg>
+              <span className="h-1 w-1 rounded-full bg-primary" />
 
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,color-mix(in_srgb,var(--color-primary)_8%,transparent),transparent_48%)]" />
+              <span className="font-mono text-[10px] tracking-[0.18em] text-primary">
+                CLASSIFIED
+              </span>
+            </div>
 
-                  <div className="absolute inset-0 bg-[repeating-linear-gradient(180deg,rgba(0,0,0,0)_0px,rgba(0,0,0,0)_3px,rgba(0,0,0,0.09)_4px)] opacity-70" />
+            <div className="absolute inset-x-0 top-20 flex justify-center">
+              <div className="relative h-72 w-52 text-text-primary opacity-30">
+                <Silhouette />
 
-                  <span
-                    className="speaker-particle speaker-particle-a"
-                    aria-hidden="true"
-                  />
+                <div className="absolute left-1/2 top-16 -translate-x-1/2 text-6xl font-black text-primary/70">
+                  ?
+                </div>
+              </div>
+            </div>
 
-                  <span
-                    className="speaker-particle speaker-particle-b"
-                    aria-hidden="true"
-                  />
-
-                  <span
-                    className="speaker-particle speaker-particle-c"
-                    aria-hidden="true"
-                  />
-
-                  <span
-                    className="speaker-particle speaker-particle-d"
-                    aria-hidden="true"
-                  />
-                </>
-              )}
-
-              <div className="pointer-events-none absolute inset-0 rounded-[inherit] border border-primary/0 transition-[border-color,box-shadow] duration-500 [@media(hover:hover)]:group-hover:border-primary/20 [@media(hover:hover)]:group-hover:shadow-[inset_0_0_35px_color-mix(in_srgb,var(--color-primary)_6%,transparent)]" />
-
-              <div className="absolute left-3 top-3 z-10 flex items-center gap-1.5 rounded-full border border-border-light bg-app-bg/75 px-2.5 py-1 font-mono text-[11px] text-text-secondary backdrop-blur-sm">
-                <span
-                  className={`h-1.5 w-1.5 rounded-full ${
-                    isRevealed ? "bg-success" : "bg-primary pulse-dot"
-                  }`}
-                />
-
-                {isRevealed ? "revealed" : "locked"}
+            <div className="absolute bottom-0 left-0 right-0 z-10 p-6">
+              <div className="mb-3 font-mono text-[10px] uppercase tracking-[0.2em] text-primary">
+                {speaker.category}
               </div>
 
-              <div className="absolute bottom-4 left-4 right-4 z-10 flex items-end justify-between gap-3">
-                <span className="font-mono text-xs text-text-muted">
-                  {slot.label}
-                </span>
+              <h3 className="text-2xl font-bold text-text-primary">
+                {speaker.title}
+              </h3>
 
-                {!isRevealed && (
-                  <span className="rounded-full border border-border-light bg-app-bg/70 px-2.5 py-1 font-mono text-[10px] text-text-muted backdrop-blur-sm">
-                    <span className="hidden sm:inline">hover for evidence</span>
+              <p className="mt-2 max-w-xs text-sm leading-relaxed text-text-secondary">
+                Identity hidden. Tap to investigate the available clues.
+              </p>
 
-                    <span className="sm:hidden">tap for evidence</span>
-                  </span>
-                )}
+              <div className="mt-5 flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] text-text-muted">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                Tap to reveal clues
               </div>
             </div>
           </div>
 
-          {/* ---------------- BACK ---------------- */}
-          <div className={`${faceClasses} flip-face-back`}>
-            <div className="flex h-full w-full flex-col gap-4 p-5">
-              <div className="flex items-center justify-between gap-3">
-                <span className="font-mono text-[10px] uppercase tracking-wide text-primary-light">
-                  Evidence
-                </span>
+          {/* BACK */}
+          <div className="flip-face flip-face-back absolute inset-0 overflow-hidden rounded-2xl border border-border-orange bg-surface-light shadow-card">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.06] via-transparent to-black/20" />
 
-                <span className="font-mono text-xs text-text-muted">
-                  {slot.label}
-                </span>
+            <div className="relative z-10 flex h-full flex-col p-6 sm:p-7">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-primary">
+                    Evidence unlocked
+                  </div>
+
+                  <h3 className="mt-2 text-2xl font-bold text-text-primary">
+                    Case {speaker.number}
+                  </h3>
+                </div>
+
+                <button
+                  type="button"
+                  onPointerDown={(event) => event.stopPropagation()}
+                  onPointerUp={(event) => event.stopPropagation()}
+                  onClick={handleClose}
+                  className="shrink-0 rounded-full border border-border-light bg-surface-light px-3 py-2 font-mono text-[10px] uppercase tracking-[0.15em] text-text-muted transition hover:border-border-orange hover:text-text-primary"
+                >
+                  Close
+                </button>
               </div>
 
-              <ul className="flex-1 space-y-2">
-                {slot.clues.map((clue, clueIndex) => (
-                  <li
+              <div className="mt-7 flex-1 space-y-3 overflow-y-auto pr-1">
+                {speaker.clues.map((clue, clueIndex) => (
+                  <div
                     key={clue}
-                    className="clue-line flex gap-2 text-xs leading-snug text-text-secondary"
-                    style={{
-                      transitionDelay: `${250 + clueIndex * 70}ms`,
-                    }}
+                    className="flex gap-3 rounded-xl border border-border-light bg-black/10 p-4"
                   >
-                    <span className="mt-0.5 text-primary">›</span>
+                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-border-orange/40 bg-primary/10">
+                      <span className="font-mono text-[10px] text-primary">
+                        {String(clueIndex + 1).padStart(2, "0")}
+                      </span>
+                    </div>
 
-                    <span>{clue}</span>
-                  </li>
+                    <p className="text-sm leading-relaxed text-text-secondary">
+                      {clue}
+                    </p>
+                  </div>
                 ))}
-              </ul>
+              </div>
 
-              <form onSubmit={handleSubmit} className="flex flex-col gap-2">
-                <label htmlFor={slot.id} className="sr-only">
-                  Guess who this is
+              <form
+                onSubmit={handleGuess}
+                onClick={(event) => event.stopPropagation()}
+                onPointerDown={(event) => event.stopPropagation()}
+                onPointerUp={(event) => event.stopPropagation()}
+                className="pt-5"
+              >
+                <label
+                  htmlFor={`guess-${speaker.id}`}
+                  className="mb-2 block font-mono text-[10px] uppercase tracking-[0.16em] text-text-muted"
+                >
+                  Submit your guess
                 </label>
 
                 <div className="flex gap-2">
                   <input
-                    id={slot.id}
+                    id={`guess-${speaker.id}`}
                     type="text"
-                    value={guess}
-                    onChange={(event) => setGuess(event.target.value)}
-                    placeholder="Type your guess"
-                    disabled={status === "scanning"}
-                    className="w-full rounded-md border border-border bg-app-bg-primary px-3 py-2 text-sm text-text-primary placeholder:text-text-muted transition-[border-color,box-shadow] duration-200 focus:border-primary-light focus-visible:outline-2 focus-visible:outline-primary-light disabled:opacity-60"
+                    value={selectedAnswer}
+                    onChange={(event) => setSelectedAnswer(event.target.value)}
+                    placeholder="Speaker name..."
+                    className="min-w-0 flex-1 rounded-xl border border-border-light bg-black/20 px-4 py-3 text-sm text-text-primary outline-none placeholder:text-text-muted focus:border-border-orange"
                   />
 
                   <button
                     type="submit"
-                    disabled={status === "scanning"}
-                    className="relative shrink-0 overflow-hidden rounded-md border border-border-orange bg-surface-orange px-4 py-2 text-sm font-medium text-primary-light transition-all duration-200 hover:bg-primary hover:text-text-dark active:scale-95 disabled:cursor-wait"
+                    className="rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white transition hover:brightness-110"
                   >
-                    <span
-                      className={`inline-flex items-center gap-1.5 transition-opacity duration-150 ${
-                        status === "scanning" ? "opacity-0" : "opacity-100"
-                      }`}
-                    >
-                      Guess
-                    </span>
-
-                    {status === "scanning" && (
-                      <span className="absolute inset-0 flex items-center justify-center gap-1">
-                        <span className="scan-dot" />
-
-                        <span
-                          className="scan-dot"
-                          style={{
-                            animationDelay: "120ms",
-                          }}
-                        />
-
-                        <span
-                          className="scan-dot"
-                          style={{
-                            animationDelay: "240ms",
-                          }}
-                        />
-                      </span>
-                    )}
+                    Guess
                   </button>
                 </div>
-
-                {feedback && status === "done" && (
-                  <p
-                    key={feedback}
-                    className="feedback-in text-sm text-text-secondary"
-                  >
-                    {feedback}
-                  </p>
-                )}
               </form>
-
-              <span className="font-mono text-[10px] text-text-muted sm:hidden">
-                tap the card to go back
-              </span>
             </div>
           </div>
         </div>
       </div>
 
+      {response && (
+        <div
+          className="absolute inset-0 z-30 flex items-center justify-center rounded-2xl bg-black/70 p-6 backdrop-blur-md"
+          onClick={handleResponseClose}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl border border-border-light bg-surface-light p-6 text-center shadow-card"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-xl text-primary">
+              {response === "correct" ? "✓" : "×"}
+            </div>
+
+            <h4 className="mt-4 text-xl font-bold text-text-primary">
+              {RESPONSES[response].title}
+            </h4>
+
+            <p className="mt-2 text-sm leading-relaxed text-text-secondary">
+              {RESPONSES[response].text}
+            </p>
+
+            <button
+              type="button"
+              onClick={handleResponseClose}
+              className="mt-5 rounded-xl border border-border-light px-5 py-2.5 text-sm font-medium text-text-primary transition hover:border-border-orange"
+            >
+              Continue
+            </button>
+          </div>
+        </div>
+      )}
+    </motion.article>
+  );
+}
+
+export default function GuessSpeakers() {
+  return (
+    <section
+      id="speakers"
+      className="relative isolate overflow-hidden bg-app-bg px-5 py-20 sm:px-8 lg:px-12"
+    >
+      <SectionBackdrop />
+
+      <div className="relative z-10 mx-auto max-w-7xl">
+        <div className="mx-auto max-w-2xl text-center">
+          <div className="inline-flex items-center gap-2 rounded-full border border-border-light bg-surface-light px-4 py-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-text-muted backdrop-blur-md">
+            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+            Investigate the files
+          </div>
+
+          <h2 className="mt-5 text-4xl font-bold tracking-tight text-text-primary sm:text-5xl">
+            Three speakers.
+            <span className="block text-gradient">One mystery.</span>
+          </h2>
+
+          <p className="mt-5 text-sm leading-relaxed text-text-secondary sm:text-base">
+            Study the clues, inspect each classified file, and submit your guess
+            before the final identities are revealed.
+          </p>
+
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+            {META_ITEMS.map((item) => (
+              <span
+                key={item}
+                className="rounded-full border border-border-light bg-surface-light px-3 py-1.5 font-mono text-[9px] uppercase tracking-[0.14em] text-text-muted"
+              >
+                {item}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-12 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          {SLOTS.map((speaker, index) => (
+            <SpeakerCard key={speaker.id} speaker={speaker} index={index} />
+          ))}
+        </div>
+      </div>
+
       <style>{`
-        @keyframes guess-card-in {
-          from {
-            opacity: 0;
-            transform: translateY(18px) scale(0.98);
-          }
-
-          to {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-          }
-        }
-
-        @keyframes feedback-in {
-          from {
-            opacity: 0;
-            transform: translateY(4px);
-          }
-
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        @keyframes pulse-dot {
-          0%,
-          100% {
-            box-shadow: 0 0 0 0 color-mix(
-              in srgb,
-              var(--color-primary) 45%,
-              transparent
-            );
-          }
-
-          50% {
-            box-shadow: 0 0 0 4px transparent;
-          }
-        }
-
-        @keyframes scan-dot {
-          0%,
-          80%,
-          100% {
-            opacity: 0.25;
-            transform: translateY(0);
-          }
-
-          40% {
-            opacity: 1;
-            transform: translateY(-2px);
-          }
-        }
-
-        @keyframes ember-a {
-          0%,
-          100% {
-            opacity: 0;
-            transform: translate3d(0, 8px, 0) scale(0.8);
-          }
-
-          20% {
-            opacity: 0.5;
-          }
-
-          70% {
-            opacity: 0.3;
-          }
-
-          100% {
-            transform: translate3d(12px, -34px, 0) scale(1);
-          }
-        }
-
-        @keyframes ember-b {
-          0%,
-          100% {
-            opacity: 0;
-            transform: translate3d(0, 6px, 0) scale(0.7);
-          }
-
-          25% {
-            opacity: 0.4;
-          }
-
-          75% {
-            opacity: 0.25;
-          }
-
-          100% {
-            transform: translate3d(-16px, -28px, 0) scale(1);
-          }
-        }
-
-        @keyframes ember-c {
-          0%,
-          100% {
-            opacity: 0;
-            transform: translate3d(0, 10px, 0) scale(0.8);
-          }
-
-          20% {
-            opacity: 0.45;
-          }
-
-          80% {
-            opacity: 0.25;
-          }
-
-          100% {
-            transform: translate3d(10px, -40px, 0) scale(1);
-          }
-        }
-
-        @keyframes ember-d {
-          0%,
-          100% {
-            opacity: 0;
-            transform: translate3d(0, 6px, 0) scale(0.75);
-          }
-
-          30% {
-            opacity: 0.35;
-          }
-
-          75% {
-            opacity: 0.2;
-          }
-
-          100% {
-            transform: translate3d(-8px, -24px, 0) scale(1);
-          }
-        }
-
-        /* ---- flip rig ---- */
-
         .flip-scene {
-          perspective: 1200px;
+          perspective: 1000px;
           cursor: pointer;
-        }
-
-        .tilt-layer {
-          transform-style: preserve-3d;
-          transition: transform 200ms ease-out;
-          will-change: transform;
+          -webkit-tap-highlight-color: transparent;
+          touch-action: manipulation;
         }
 
         .flip-inner {
           position: relative;
+          width: 100%;
+          height: 100%;
           transform-style: preserve-3d;
-          transition: transform 600ms cubic-bezier(0.16, 1, 0.3, 1);
+          transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
           will-change: transform;
         }
 
+        .flip-inner.is-flipped {
+          transform: rotateY(180deg);
+        }
+
         .flip-face {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
           backface-visibility: hidden;
           -webkit-backface-visibility: hidden;
+          transform-style: preserve-3d;
+        }
+
+        .flip-face-front {
+          transform: rotateY(0deg);
         }
 
         .flip-face-back {
           transform: rotateY(180deg);
         }
 
-        .flip-scene.is-flipped .flip-inner {
-          transform: rotateY(180deg);
-        }
-
-        @media (hover: hover) {
+        @media (min-width: 768px) {
           .flip-scene {
-            cursor: default;
-          }
-
-          .flip-scene:hover .flip-inner,
-          .flip-scene:focus-within .flip-inner {
-            transform: rotateY(180deg);
+            perspective: 1200px;
           }
         }
 
-        /* ---- embers ---- */
-
-        .speaker-particle {
-          position: absolute;
-          z-index: 4;
-          width: 3px;
-          height: 3px;
-          border-radius: 999px;
-          background: var(--color-primary-light);
-          box-shadow: 0 0 8px color-mix(
-            in srgb,
-            var(--color-primary-light) 50%,
-            transparent
-          );
-          pointer-events: none;
-          opacity: 0;
-        }
-
-        .speaker-particle-a {
-          left: 29%;
-          top: 68%;
-        }
-
-        .speaker-particle-b {
-          left: 54%;
-          top: 62%;
-        }
-
-        .speaker-particle-c {
-          left: 68%;
-          top: 74%;
-        }
-
-        .speaker-particle-d {
-          left: 43%;
-          top: 78%;
-        }
-
-        @media (hover: hover) {
-          .flip-scene:hover .speaker-particle-a {
-            animation: ember-a 3.4s ease-in-out infinite;
+        @media (max-width: 767px) {
+          .flip-scene {
+            perspective: 900px;
           }
 
-          .flip-scene:hover .speaker-particle-b {
-            animation: ember-b 4s ease-in-out infinite 0.4s;
+          .flip-inner {
+            transition-duration: 0.55s;
           }
 
-          .flip-scene:hover .speaker-particle-c {
-            animation: ember-c 3.8s ease-in-out infinite 0.9s;
+          .flip-face {
+            transform-style: flat;
           }
 
-          .flip-scene:hover .speaker-particle-d {
-            animation: ember-d 4.2s ease-in-out infinite 1.1s;
-          }
-        }
-
-        /* ---- clue stagger ---- */
-
-        .clue-line {
-          opacity: 0;
-          transform: translateY(6px);
-          transition:
-            opacity 260ms ease-out,
-            transform 260ms ease-out;
-        }
-
-        .flip-scene.is-flipped .clue-line {
-          opacity: 1;
-          transform: translateY(0);
-        }
-
-        @media (hover: hover) {
-          .flip-scene:hover .clue-line,
-          .flip-scene:focus-within .clue-line {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        .feedback-in {
-          animation: feedback-in 320ms cubic-bezier(0.16, 1, 0.3, 1) both;
-        }
-
-        .pulse-dot {
-          animation: pulse-dot 2.2s ease-out infinite;
-        }
-
-        .scan-dot {
-          width: 5px;
-          height: 5px;
-          border-radius: 9999px;
-          background: currentColor;
-          animation: scan-dot 900ms ease-in-out infinite;
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .flip-scene,
-          .tilt-layer,
-          .flip-inner,
-          .speaker-particle,
-          .scan-dot,
-          .clue-line,
-          .pulse-dot {
-            animation: none !important;
-            transition: none !important;
+          .flip-face-front {
+            transform: rotateY(0deg) translateZ(0);
           }
 
-          .clue-line {
-            opacity: 1;
-            transform: none;
+          .flip-face-back {
+            transform: rotateY(180deg) translateZ(0);
           }
         }
       `}</style>
-    </div>
-  );
-}
-
-export default function GuessSpeakers() {
-  return (
-    <section className="relative w-full overflow-hidden bg-app-bg-primary px-6 py-24 sm:px-10 lg:px-16 xl:px-24">
-      <SectionBackdrop />
-
-      <div className="relative z-10 mx-auto w-full max-w-[1800px]">
-        <div
-          className="mb-6 inline-flex items-center gap-2 rounded-full border border-border-light bg-app-bg/70 px-3 py-1 font-mono text-[11px] uppercase tracking-widest text-text-secondary backdrop-blur-sm"
-          style={{
-            animation: "guess-card-in 560ms cubic-bezier(0.16,1,0.3,1) both",
-          }}
-        >
-          <span className="pulse-dot h-1.5 w-1.5 rounded-full bg-primary" />
-          Guess the lineup
-        </div>
-
-        <div className="flex flex-col justify-between gap-8 border-b border-border pb-10 lg:flex-row lg:items-end">
-          <div
-            className="max-w-2xl"
-            style={{
-              animation: "guess-card-in 560ms cubic-bezier(0.16,1,0.3,1) both",
-              animationDelay: "60ms",
-            }}
-          >
-            <h2 className="text-3xl font-semibold leading-tight text-text-primary sm:text-4xl lg:text-5xl">
-              Three names. Zero confirmations.
-            </h2>
-
-            <p className="mt-4 max-w-xl text-base leading-relaxed text-text-secondary sm:text-lg">
-              Each card holds one DevTalks speaker. Flip a card for the evidence
-              — hover on desktop, tap on mobile — then submit a guess. Right or
-              wrong, DevKraft is keeping count.
-            </p>
-          </div>
-
-          <div
-            className="flex flex-wrap items-center gap-x-3 gap-y-2 font-mono text-[11px] uppercase tracking-widest text-text-muted lg:justify-end"
-            style={{
-              animation: "guess-card-in 560ms cubic-bezier(0.16,1,0.3,1) both",
-              animationDelay: "120ms",
-            }}
-          >
-            {META_ITEMS.map((item, index) => (
-              <span key={item} className="flex items-center gap-3">
-                <span className="flex items-center gap-2">
-                  <span className="h-1.5 w-1.5 rounded-full bg-primary/70" />
-                  {item}
-                </span>
-
-                {index < META_ITEMS.length - 1 && (
-                  <span className="text-border-light">|</span>
-                )}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {SLOTS.map((slot, index) => (
-            <SpeakerCard key={slot.id} slot={slot} index={index} />
-          ))}
-        </div>
-      </div>
     </section>
-  );
-}
-
-/**
- * Faint stage-floor grid + ambient glow,
- * ties this section back to the Hero/Loader.
- */
-function SectionBackdrop() {
-  return (
-    <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
-      <div
-        className="absolute inset-0 opacity-30"
-        style={{
-          backgroundImage:
-            "linear-gradient(var(--color-border-light) 1px, transparent 1px), linear-gradient(90deg, var(--color-border-light) 1px, transparent 1px)",
-          backgroundSize: "64px 64px",
-          maskImage:
-            "radial-gradient(ellipse 80% 60% at 50% 0%, black 0%, transparent 70%)",
-          WebkitMaskImage:
-            "radial-gradient(ellipse 80% 60% at 50% 0%, black 0%, transparent 70%)",
-        }}
-      />
-
-      <div
-        className="absolute left-1/2 top-0 h-[380px] w-[720px] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-60 blur-[140px]"
-        style={{
-          backgroundColor:
-            "color-mix(in srgb, var(--color-primary) 16%, transparent)",
-        }}
-      />
-    </div>
   );
 }

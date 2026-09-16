@@ -1,16 +1,16 @@
 import { useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 
-const RESPONSES = {
-  correct: {
-    title: "Case Solved",
-    text: "You identified the speaker correctly.",
-  },
-  wrong: {
-    title: "Wrong Lead",
-    text: "The identity remains classified.",
-  },
-};
+const GUESS_MESSAGES = [
+  "You might be onto something.",
+  "That could be the one.",
+  "Your guess might be right.",
+  "You may have found the lead.",
+  "That name looks familiar.",
+  "Interesting choice.",
+  "You’re getting closer.",
+  "That’s a bold guess.",
+];
 
 const SLOTS = [
   {
@@ -111,10 +111,8 @@ function SectionBackdrop() {
       className="pointer-events-none absolute inset-0 overflow-hidden"
       aria-hidden="true"
     >
-      {/* Deep base */}
       <div className="absolute inset-0 bg-[#030303]" />
 
-      {/* Very subtle micro texture */}
       <div
         className="absolute inset-0 opacity-[0.028]"
         style={{
@@ -129,7 +127,6 @@ function SectionBackdrop() {
         }}
       />
 
-      {/* Main radar rings */}
       <motion.div
         className="absolute left-1/2 top-1/2 h-[26rem] w-[26rem] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/[0.035] sm:h-[38rem] sm:w-[38rem] lg:h-[52rem] lg:w-[52rem]"
         animate={
@@ -174,7 +171,6 @@ function SectionBackdrop() {
         <span className="absolute right-[8%] top-[31%] h-1 w-1 rounded-full bg-[var(--color-primary-light)]" />
       </motion.div>
 
-      {/* Elliptical orbital cut */}
       <motion.div
         className="absolute left-1/2 top-1/2 h-[13rem] w-[38rem] -translate-x-1/2 -translate-y-1/2 rounded-[50%] border border-white/[0.025] sm:h-[18rem] sm:w-[54rem]"
         animate={
@@ -195,7 +191,6 @@ function SectionBackdrop() {
         }
       />
 
-      {/* Radar sweep */}
       {!reduceMotion && (
         <motion.div
           className="absolute left-1/2 top-1/2 h-[31rem] w-[1px] origin-bottom bg-gradient-to-t from-[var(--color-primary)]/30 via-[var(--color-primary)]/8 to-transparent sm:h-[44rem]"
@@ -213,7 +208,6 @@ function SectionBackdrop() {
         />
       )}
 
-      {/* Moving scan beam */}
       {!reduceMotion && (
         <>
           <motion.div
@@ -246,7 +240,6 @@ function SectionBackdrop() {
         </>
       )}
 
-      {/* Radar marks */}
       {RADAR_MARKS.map((mark, index) => (
         <motion.div
           key={index}
@@ -283,7 +276,6 @@ function SectionBackdrop() {
         </motion.div>
       ))}
 
-      {/* Small floating particles */}
       {PARTICLES.map((particle, index) => (
         <motion.span
           key={index}
@@ -313,13 +305,11 @@ function SectionBackdrop() {
         />
       ))}
 
-      {/* Technical corner brackets */}
       <div className="absolute left-5 top-6 h-9 w-9 border-l border-t border-[var(--color-primary)]/[0.1] sm:left-8 sm:top-8" />
       <div className="absolute right-5 top-6 h-9 w-9 border-r border-t border-[var(--color-primary)]/[0.1] sm:right-8 sm:top-8" />
       <div className="absolute bottom-6 left-5 h-9 w-9 border-b border-l border-[var(--color-primary)]/[0.1] sm:bottom-8 sm:left-8" />
       <div className="absolute bottom-6 right-5 h-9 w-9 border-b border-r border-[var(--color-primary)]/[0.1] sm:bottom-8 sm:right-8" />
 
-      {/* Tiny status labels */}
       <div className="absolute left-8 top-24 hidden font-mono text-[7px] uppercase tracking-[0.22em] text-text-muted/35 sm:block">
         SIGNAL / ACTIVE
       </div>
@@ -328,7 +318,6 @@ function SectionBackdrop() {
         CLASSIFIED / 03
       </div>
 
-      {/* Section edges */}
       <div className="absolute inset-x-0 top-0 h-px bg-border-light" />
       <div className="absolute inset-x-0 bottom-0 h-px bg-border-light" />
     </div>
@@ -338,7 +327,7 @@ function SectionBackdrop() {
 function SpeakerCard({ speaker, index }) {
   const [isFlipped, setIsFlipped] = useState(false);
   const [selectedAnswer, setSelectedAnswer] = useState("");
-  const [response, setResponse] = useState(null);
+  const [guessMessage, setGuessMessage] = useState("");
 
   const reduceMotion = useReducedMotion();
 
@@ -401,17 +390,21 @@ function SpeakerCard({ speaker, index }) {
       return;
     }
 
-    setResponse(
-      answer.toLowerCase() === speaker.title.toLowerCase()
-        ? "correct"
-        : "wrong",
-    );
-  };
+    let nextMessage =
+      GUESS_MESSAGES[Math.floor(Math.random() * GUESS_MESSAGES.length)];
 
-  const handleResponseClose = (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    setResponse(null);
+    if (GUESS_MESSAGES.length > 1) {
+      while (nextMessage === guessMessage) {
+        nextMessage =
+          GUESS_MESSAGES[Math.floor(Math.random() * GUESS_MESSAGES.length)];
+      }
+    }
+
+    setGuessMessage(nextMessage);
+
+    window.setTimeout(() => {
+      setGuessMessage("");
+    }, 2200);
   };
 
   return (
@@ -450,7 +443,6 @@ function SpeakerCard({ speaker, index }) {
           <div className="flip-face flip-face-front absolute inset-0 overflow-hidden rounded-2xl border border-border-light bg-[#080808] shadow-card">
             <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/80" />
 
-            {/* Card scan detail */}
             <div className="pointer-events-none absolute inset-x-0 top-16 h-px bg-gradient-to-r from-transparent via-[var(--color-primary)]/10 to-transparent" />
 
             <div className="absolute left-5 top-5 z-10 flex items-center gap-2 rounded-full border border-border-light bg-black/55 px-3 py-1.5">
@@ -578,36 +570,23 @@ function SpeakerCard({ speaker, index }) {
         </div>
       </div>
 
-      {response && (
-        <div
-          className="absolute inset-0 z-30 flex items-center justify-center rounded-2xl bg-black/75 p-6"
-          onClick={handleResponseClose}
+      {/* Small random response */}
+      {guessMessage && (
+        <motion.div
+          initial={{
+            opacity: 0,
+            y: 6,
+          }}
+          animate={{
+            opacity: 1,
+            y: 0,
+          }}
+          className="pointer-events-none absolute bottom-5 left-1/2 z-30 -translate-x-1/2"
         >
-          <div
-            className="w-full max-w-sm rounded-2xl border border-border-light bg-[#0a0a0a] p-6 text-center shadow-card"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-xl text-primary">
-              {response === "correct" ? "✓" : "×"}
-            </div>
-
-            <h4 className="mt-4 text-xl font-bold text-text-primary">
-              {RESPONSES[response].title}
-            </h4>
-
-            <p className="mt-2 text-sm leading-relaxed text-text-secondary">
-              {RESPONSES[response].text}
-            </p>
-
-            <button
-              type="button"
-              onClick={handleResponseClose}
-              className="mt-5 rounded-xl border border-border-light px-5 py-2.5 text-sm font-medium text-text-primary transition hover:border-border-orange"
-            >
-              Continue
-            </button>
+          <div className="whitespace-nowrap rounded-full border border-border-light bg-[#0a0a0a]/95 px-4 py-2 font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--color-primary-light)] shadow-lg">
+            {guessMessage}
           </div>
-        </div>
+        </motion.div>
       )}
     </motion.article>
   );

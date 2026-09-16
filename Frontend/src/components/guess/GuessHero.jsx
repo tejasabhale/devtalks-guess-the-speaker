@@ -114,16 +114,39 @@ export default function GuessHero() {
         className="guess-hero__stage pointer-events-none absolute inset-0 -z-20"
         aria-hidden="true"
       >
-        {SPOTS.map((spot) => (
+        {SPOTS.map((spot, index) => (
           <div key={spot.mod} className={`guess-hero__spot ${spot.mod}`}>
             <div className="guess-hero__beam" />
 
             <div className="guess-hero__figure">
-              <span className="guess-hero__figure-head" />
-              <span className="guess-hero__figure-body" />
+              <div className="guess-hero__figure-head">
+                <span className="guess-hero__ear guess-hero__ear--left" />
+                <span className="guess-hero__ear guess-hero__ear--right" />
+
+                <span className="guess-hero__face">
+                  <span className="guess-hero__figure-question">?</span>
+                </span>
+              </div>
+
+              <div className="guess-hero__neck" />
+
+              <div className="guess-hero__shoulders">
+                <span className="guess-hero__shoulder-highlight guess-hero__shoulder-highlight--left" />
+                <span className="guess-hero__shoulder-highlight guess-hero__shoulder-highlight--right" />
+              </div>
+
+              <div className="guess-hero__figure-body">
+                <span className="guess-hero__chest" />
+                <span className="guess-hero__torso-center" />
+              </div>
+
+              <span className="guess-hero__arm guess-hero__arm--left" />
+              <span className="guess-hero__arm guess-hero__arm--right" />
             </div>
 
             <div className="guess-hero__floor-glow" />
+
+            <span className="guess-hero__file-number">0{index + 1}</span>
           </div>
         ))}
       </div>

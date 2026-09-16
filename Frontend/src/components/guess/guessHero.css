@@ -1,18 +1,15 @@
 /* ─────────────────────────────────────────────────────────────
-   GuessHero — speaker stage background
-   Theme tokens (fallbacks match the app palette):
-   --app-bg: #0a0a0b   --primary: #ff5a1f   --ink: #f4f0e8
+   GuessHero — human-like anonymous speaker silhouettes
    ───────────────────────────────────────────────────────────── */
 
 .guess-hero__vignette {
   background: radial-gradient(
     ellipse at center,
-    transparent 40%,
-    rgba(5, 5, 6, 0.55) 100%
+    transparent 38%,
+    rgba(5, 5, 6, 0.58) 100%
   );
 }
 
-/* ── Stage ─────────────────────────────────────────────────── */
 .guess-hero__stage {
   overflow: hidden;
 }
@@ -26,48 +23,47 @@
   transform: translateX(-50%);
 }
 
-/* placement / sizing per speaker — fluid via clamp() */
 .guess-hero__spot--left {
   --x: 15%;
-  --fig: clamp(84px, 13vw, 150px);
+  --fig: clamp(92px, 13vw, 154px);
   --dur: 7s;
   --delay: 0.05s;
 }
+
 .guess-hero__spot--center {
   --x: 50%;
-  --fig: clamp(112px, 17vw, 196px);
+  --fig: clamp(120px, 17vw, 200px);
   --dur: 8.5s;
   --delay: 0.35s;
 }
+
 .guess-hero__spot--right {
   --x: 85%;
-  --fig: clamp(84px, 13vw, 150px);
+  --fig: clamp(92px, 13vw, 154px);
   --dur: 7.6s;
   --delay: 0.2s;
 }
 
-/* ── Conical spotlight beam ────────────────────────────────── */
+/* ── Spotlight beam ────────────────────────────────────────── */
+
 .guess-hero__beam {
   position: absolute;
   top: -4%;
   left: 50%;
   width: calc(var(--fig) * 1.9);
-  /* Height is a per-spot variable so smaller breakpoints can stretch
-     the cone further down — see the responsive block below. Figures
-     are sized off a clamp()'d width, which shrinks much faster than
-     viewport height does on narrow screens, so without this override
-     the beam's bright, widened base ends well above a small figure's
-     head instead of landing on it like it does at desktop sizes. */
   height: var(--beam-h, 72%);
   transform-origin: 50% 0;
+
   background: linear-gradient(
     to bottom,
     rgba(255, 90, 31, 0.3),
     rgba(255, 90, 31, 0.1) 55%,
     transparent 82%
   );
+
   clip-path: polygon(46% 0, 54% 0, 100% 100%, 0 100%);
   filter: blur(6px);
+
   animation: guess-hero-beam-sway var(--dur) ease-in-out var(--delay) infinite
     alternate;
 }
@@ -76,34 +72,41 @@
   from {
     transform: translateX(-50%) rotate(-4deg);
   }
+
   to {
     transform: translateX(-50%) rotate(4deg);
   }
 }
 
-/* ── Dark speaker silhouette ───────────────────────────────── */
+/* ── Figure ───────────────────────────────────────────────── */
+
 .guess-hero__figure {
   position: absolute;
   bottom: 0;
   left: 50%;
+
   width: var(--fig);
-  aspect-ratio: 1 / 2.4;
+  height: calc(var(--fig) * 2.42);
+
   transform: translateX(-50%);
-  translate: 0 0;
   opacity: 0;
+
   animation:
     guess-hero-figure-rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) var(--delay) both,
     guess-hero-figure-bob 5.5s ease-in-out calc(var(--delay) + 1s) infinite;
+
+  filter: drop-shadow(0 0 18px rgba(255, 90, 31, 0.055));
 }
 
 @keyframes guess-hero-figure-rise {
   from {
     opacity: 0;
-    translate: 0 40px;
+    transform: translateX(-50%) translateY(40px);
   }
+
   to {
     opacity: 1;
-    translate: 0 0;
+    transform: translateX(-50%) translateY(0);
   }
 }
 
@@ -112,67 +115,311 @@
   100% {
     transform: translateX(-50%) translateY(0);
   }
+
   50% {
-    transform: translateX(-50%) translateY(-6px);
+    transform: translateX(-50%) translateY(-5px);
   }
 }
+
+/* ── Head ──────────────────────────────────────────────────── */
 
 .guess-hero__figure-head {
   position: absolute;
   top: 0;
   left: 50%;
+
+  width: 39%;
+  aspect-ratio: 0.84 / 1;
+
   transform: translateX(-50%);
-  width: 42%;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #16161a, #0a0a0c 70%);
+
+  border-radius: 47% 47% 44% 44% / 45% 45% 53% 53%;
+
+  background: radial-gradient(
+    ellipse at 36% 26%,
+    #1d1d22 0%,
+    #141419 25%,
+    #0b0b0e 68%,
+    #060608 100%
+  );
+
   box-shadow:
-    0 0 28px rgba(255, 90, 31, 0.1),
-    inset -5px -4px 8px rgba(255, 90, 31, 0.07);
+    inset -7px -7px 12px rgba(0, 0, 0, 0.7),
+    inset 3px 2px 8px rgba(255, 255, 255, 0.025),
+    0 0 22px rgba(255, 90, 31, 0.045);
 }
+
+.guess-hero__figure-head::after {
+  content: "";
+  position: absolute;
+  left: 17%;
+  right: 17%;
+  bottom: 0;
+  height: 24%;
+
+  border-radius: 0 0 48% 48%;
+
+  background: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.2));
+}
+
+/* ── Ears ──────────────────────────────────────────────────── */
+
+.guess-hero__ear {
+  position: absolute;
+  top: 39%;
+
+  width: 9%;
+  height: 18%;
+
+  border-radius: 48%;
+  background: #09090c;
+}
+
+.guess-hero__ear--left {
+  left: -5%;
+}
+
+.guess-hero__ear--right {
+  right: -5%;
+}
+
+/* ── Face ──────────────────────────────────────────────────── */
+
+.guess-hero__face {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+
+  background: radial-gradient(
+    ellipse at 50% 55%,
+    rgba(255, 255, 255, 0.018),
+    transparent 58%
+  );
+}
+
+/* ── Question mark ─────────────────────────────────────────── */
+
+.guess-hero__figure-question {
+  position: absolute;
+  left: 50%;
+  top: 51%;
+
+  z-index: 5;
+
+  transform: translate(-50%, -50%);
+
+  font-family: "Inter", sans-serif;
+  font-size: clamp(1.35rem, 2.4vw, 2.15rem);
+  font-weight: 800;
+  line-height: 1;
+
+  color: var(--color-primary);
+  opacity: 0.82;
+
+  text-shadow:
+    0 0 7px color-mix(in srgb, var(--color-primary) 18%, transparent),
+    0 0 15px color-mix(in srgb, var(--color-primary) 7%, transparent);
+}
+
+/* ── Neck ──────────────────────────────────────────────────── */
+
+.guess-hero__neck {
+  position: absolute;
+  top: 13.2%;
+  left: 50%;
+
+  width: 15%;
+  height: 17.5%;
+
+  transform: translateX(-50%);
+
+  background: linear-gradient(180deg, #0d0d10 0%, #09090c 75%, #070709 100%);
+
+  border-radius: 0 0 28% 28%;
+
+  box-shadow:
+    inset -4px 0 6px rgba(0, 0, 0, 0.35),
+    inset 3px 0 5px rgba(255, 90, 31, 0.025);
+}
+
+/* ── Shoulders ─────────────────────────────────────────────── */
+
+.guess-hero__shoulders {
+  position: absolute;
+  top: 17%;
+
+  left: 50%;
+  width: 108%;
+  height: 23%;
+
+  transform: translateX(-50%);
+
+  background: linear-gradient(180deg, #141418 0%, #0d0d11 35%, #09090c 100%);
+
+  clip-path: polygon(
+    31% 0,
+    39% 7%,
+    50% 17%,
+    61% 7%,
+    69% 0,
+    82% 12%,
+    95% 32%,
+    100% 100%,
+    0 100%,
+    5% 32%,
+    18% 12%
+  );
+
+  box-shadow:
+    inset 0 5px 8px rgba(255, 255, 255, 0.012),
+    inset 0 -12px 22px rgba(0, 0, 0, 0.35);
+}
+
+.guess-hero__shoulder-highlight {
+  position: absolute;
+  top: 9%;
+  width: 23%;
+  height: 13%;
+
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.015);
+}
+
+.guess-hero__shoulder-highlight--left {
+  left: 12%;
+  transform: rotate(-18deg);
+}
+
+.guess-hero__shoulder-highlight--right {
+  right: 12%;
+  transform: rotate(18deg);
+}
+
+/* ── Torso ─────────────────────────────────────────────────── */
 
 .guess-hero__figure-body {
   position: absolute;
-  top: 17%;
-  left: 0;
-  width: 100%;
-  height: 83%;
-  border-radius: 50% 50% 10% 10% / 32% 32% 0 0;
-  background: linear-gradient(180deg, #121216 0%, #0a0a0c 60%, #070708 100%);
+  top: 30%;
+  left: 50%;
+
+  width: 95%;
+  height: 70%;
+
+  transform: translateX(-50%);
+
+  background: linear-gradient(
+    180deg,
+    #101014 0%,
+    #0b0b0f 34%,
+    #08080b 70%,
+    #060608 100%
+  );
+
+  clip-path: polygon(
+    20% 0,
+    35% 4%,
+    42% 9%,
+    50% 12%,
+    58% 9%,
+    65% 4%,
+    80% 0,
+    90% 12%,
+    95% 34%,
+    100% 100%,
+    0 100%,
+    5% 34%,
+    10% 12%
+  );
+
   box-shadow:
-    inset -12px 0 22px -14px rgba(255, 90, 31, 0.28),
-    inset 12px 0 22px -16px rgba(255, 90, 31, 0.1);
-  animation: guess-hero-rim 4s ease-in-out infinite;
+    inset 0 0 24px rgba(0, 0, 0, 0.55),
+    inset -8px 0 16px rgba(255, 90, 31, 0.045),
+    inset 8px 0 16px rgba(255, 90, 31, 0.018);
 }
 
-@keyframes guess-hero-rim {
-  0%,
-  100% {
-    box-shadow:
-      inset -12px 0 22px -14px rgba(255, 90, 31, 0.28),
-      inset 12px 0 22px -16px rgba(255, 90, 31, 0.1);
-  }
-  50% {
-    box-shadow:
-      inset -12px 0 26px -12px rgba(255, 90, 31, 0.4),
-      inset 12px 0 22px -16px rgba(255, 90, 31, 0.14);
-  }
+.guess-hero__chest {
+  position: absolute;
+  top: 5%;
+  left: 50%;
+
+  width: 62%;
+  height: 22%;
+
+  transform: translateX(-50%);
+
+  border-radius: 50% 50% 42% 42%;
+
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 255, 255, 0.025),
+    transparent 68%
+  );
 }
 
-/* ── Floor glow pooling under each speaker ─────────────────── */
+.guess-hero__torso-center {
+  position: absolute;
+  top: 12%;
+  left: 50%;
+
+  width: 1px;
+  height: 62%;
+
+  transform: translateX(-50%);
+
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.025),
+    transparent
+  );
+
+  opacity: 0.7;
+}
+
+/* ── Arms ──────────────────────────────────────────────────── */
+
+.guess-hero__arm {
+  position: absolute;
+  top: 31%;
+
+  width: 14%;
+  height: 67%;
+
+  background: linear-gradient(180deg, #0e0e12 0%, #09090c 55%, #060608 100%);
+
+  border-radius: 42%;
+  opacity: 0.92;
+}
+
+.guess-hero__arm--left {
+  left: -4%;
+  transform: rotate(4deg);
+}
+
+.guess-hero__arm--right {
+  right: -4%;
+  transform: rotate(-4deg);
+}
+
+/* ── Floor glow ────────────────────────────────────────────── */
+
 .guess-hero__floor-glow {
   position: absolute;
   bottom: -2px;
   left: 50%;
+
   width: calc(var(--fig) * 1.7);
   height: 28px;
+
   transform: translateX(-50%);
+
   background: radial-gradient(
     ellipse at center,
     rgba(255, 90, 31, 0.25),
     transparent 70%
   );
+
   filter: blur(4px);
+
   animation: guess-hero-glow-pulse 4s ease-in-out var(--delay) infinite;
 }
 
@@ -181,12 +428,31 @@
   100% {
     opacity: 0.7;
   }
+
   50% {
     opacity: 1;
   }
 }
 
-/* ── Cursor spotlight (kept from original) ─────────────────── */
+/* ── File number ───────────────────────────────────────────── */
+
+.guess-hero__file-number {
+  position: absolute;
+  bottom: 12%;
+  left: 50%;
+
+  transform: translateX(-50%);
+
+  font-family: monospace;
+  font-size: 9px;
+  letter-spacing: 0.2em;
+
+  color: var(--color-text-muted);
+  opacity: 0.45;
+}
+
+/* ── Cursor spotlight ─────────────────────────────────────── */
+
 .guess-hero__spotlight {
   background: radial-gradient(
     420px circle at var(--mouse-x, 50%) var(--mouse-y, 40%),
@@ -199,38 +465,111 @@
   opacity: 1;
 }
 
-/* ── Responsive: pull side speakers inward, and stretch the beams
-   so they still reach down onto the (proportionally shorter) figures
-   the way they do on desktop ─────────────────────────────────── */
+/* ── Mobile ───────────────────────────────────────────────── */
+
 @media (max-width: 640px) {
-  .guess-hero__spot--left {
-    --x: 7%;
-    --beam-h: 88%;
-  }
-  .guess-hero__spot--right {
-    --x: 93%;
-    --beam-h: 88%;
-  }
   .guess-hero__spot--center {
-    --beam-h: 84%;
+    --x: 50%;
+    --fig: clamp(118px, 29vw, 148px);
+    --figure-height: 50vh;
+    --beam-h: 86%;
   }
+
+  .guess-hero__spot--left {
+    --x: 17%;
+    --fig: clamp(68px, 18vw, 86px);
+    --figure-height: 33vh;
+    --beam-h: 82%;
+  }
+
+  .guess-hero__spot--right {
+    --x: 83%;
+    --fig: clamp(68px, 18vw, 86px);
+    --figure-height: 33vh;
+    --beam-h: 82%;
+  }
+
+  .guess-hero__figure {
+    width: var(--fig);
+    height: var(--figure-height);
+  }
+
+  /*
+   * Mobile neck adjustment:
+   * wider + shorter to create a more natural
+   * head-to-shoulder transition at small sizes.
+   */
+  .guess-hero__neck {
+    top: 12.5%;
+    width: 20%;
+    height: 14%;
+    border-radius: 0 0 24% 24%;
+  }
+
+  .guess-hero__shoulders {
+    top: 16%;
+    height: 21%;
+  }
+
+  .guess-hero__figure-question {
+    font-size: clamp(1.15rem, 6vw, 1.7rem);
+  }
+
+  .guess-hero__arm {
+    width: 13%;
+  }
+
+  .guess-hero__file-number {
+    bottom: 8%;
+  }
+
   .guess-hero__beam {
     filter: blur(5px);
   }
 }
 
+/* ── Small phones ─────────────────────────────────────────── */
+
 @media (max-width: 400px) {
+  .guess-hero__spot--center {
+    --fig: 116px;
+    --figure-height: 50vh;
+    --beam-h: 91%;
+  }
+
   .guess-hero__spot--left,
   .guess-hero__spot--right {
-    --fig: clamp(64px, 18vw, 84px);
-    --beam-h: 100%;
+    --fig: 64px;
+    --figure-height: 31vh;
+    --beam-h: 98%;
   }
-  .guess-hero__spot--center {
-    --beam-h: 92%;
+
+  .guess-hero__spot--left {
+    --x: 15%;
+  }
+
+  .guess-hero__spot--right {
+    --x: 85%;
+  }
+
+  .guess-hero__neck {
+    top: 12%;
+    width: 21%;
+    height: 13%;
+  }
+
+  .guess-hero__shoulders {
+    top: 15.5%;
+    height: 20%;
+  }
+
+  .guess-hero__figure-question {
+    font-size: 1.1rem;
   }
 }
 
-/* ── Accessibility: honor reduced motion ───────────────────── */
+/* ── Reduced motion ───────────────────────────────────────── */
+
 @media (prefers-reduced-motion: reduce) {
   .guess-hero__beam,
   .guess-hero__figure,
@@ -238,6 +577,7 @@
   .guess-hero__floor-glow {
     animation: none !important;
   }
+
   .guess-hero__figure {
     opacity: 1;
   }

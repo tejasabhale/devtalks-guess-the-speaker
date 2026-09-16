@@ -16,7 +16,7 @@ export default function AboutClub() {
 
   return (
     <section
-      id="about-club"
+      id="devkraft"
       className="relative flex min-h-screen w-full items-center overflow-hidden border-y border-[var(--color-border)] bg-[#050505] px-5 py-20 sm:px-8 sm:py-24 lg:px-10 lg:py-16"
     >
       {/* Premium signal-field background */}

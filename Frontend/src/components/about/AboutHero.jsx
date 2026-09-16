@@ -287,7 +287,7 @@ export default function AboutHero() {
             className="mt-8 flex w-full flex-col items-center gap-3 sm:mt-10 sm:w-auto sm:flex-row"
           >
             <motion.a
-              href="#devtalks"
+              href="/#devtalks"
               whileHover={{ y: -2 }}
               whileTap={{ scale: 0.97 }}
               className="rounded-md bg-[var(--color-primary)] px-6 py-3.5 text-center text-sm font-medium text-[var(--color-text-dark)] shadow-[var(--shadow-orange)] transition-colors duration-300 hover:bg-[var(--color-primary-light)] sm:w-auto"
@@ -296,7 +296,7 @@ export default function AboutHero() {
             </motion.a>
 
             <motion.a
-              href="#what-we-do"
+              href="/#devkraft"
               whileHover={{ y: -2 }}
               whileTap={{ scale: 0.97 }}
               className="glass rounded-md px-6 py-3.5 text-center text-sm font-medium text-[var(--color-text-primary)] transition-colors duration-300 hover:border-[var(--color-border-orange)] sm:w-auto"

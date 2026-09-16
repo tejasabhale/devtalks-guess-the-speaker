@@ -20,7 +20,10 @@ export default function AboutDevTalks() {
   const reduceMotion = useReducedMotion();
 
   return (
-    <section className="relative overflow-hidden border-y border-[var(--color-border)] bg-[#050505] px-5 py-20 sm:px-8 sm:py-28 lg:px-10">
+    <section
+      id="devtalks"
+      className="relative overflow-hidden border-y border-[var(--color-border)] bg-[#050505] px-5 py-20 sm:px-8 sm:py-28 lg:px-10"
+    >
       {/* Background */}
       <div
         className="pointer-events-none absolute inset-0 overflow-hidden"

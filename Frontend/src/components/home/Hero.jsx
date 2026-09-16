@@ -224,7 +224,7 @@ function GuessButton() {
   return (
     <div className="flex flex-col items-center gap-3">
       <Link
-        to="/guess"
+        to="/#guess"
         className="devtalks-guess-btn group relative inline-flex items-center gap-2.5 overflow-hidden rounded-lg px-9 py-4 font-semibold text-text-dark shadow-orange outline-none transition-all duration-300 ease-out hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-primary-light focus-visible:ring-offset-2 focus-visible:ring-offset-app-bg active:translate-y-0"
         style={{
           backgroundImage:

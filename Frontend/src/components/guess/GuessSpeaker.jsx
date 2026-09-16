@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 
 const RESPONSES = {
   correct: {
@@ -56,6 +56,26 @@ const SLOTS = [
 
 const META_ITEMS = ["3 mystery speakers", "Multiple clues", "One final reveal"];
 
+const RADAR_MARKS = [
+  { top: "14%", left: "12%", rotate: -18 },
+  { top: "22%", left: "84%", rotate: 14 },
+  { top: "72%", left: "10%", rotate: 10 },
+  { top: "79%", left: "88%", rotate: -12 },
+  { top: "48%", left: "94%", rotate: 90 },
+  { top: "86%", left: "42%", rotate: 180 },
+];
+
+const PARTICLES = [
+  { top: "12%", left: "23%", delay: 0 },
+  { top: "19%", left: "74%", delay: 0.8 },
+  { top: "36%", left: "89%", delay: 1.6 },
+  { top: "61%", left: "8%", delay: 2.4 },
+  { top: "73%", left: "78%", delay: 3.1 },
+  { top: "88%", left: "23%", delay: 4 },
+  { top: "31%", left: "17%", delay: 1.2 },
+  { top: "67%", left: "92%", delay: 2.8 },
+];
+
 function Silhouette() {
   return (
     <svg
@@ -84,26 +104,234 @@ function Silhouette() {
 }
 
 function SectionBackdrop() {
-  return (
-    <>
-      <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-        <div className="absolute inset-0 bg-radial-orange opacity-70" />
+  const reduceMotion = useReducedMotion();
 
-        <div
-          className="absolute inset-0 opacity-[0.035]"
+  return (
+    <div
+      className="pointer-events-none absolute inset-0 overflow-hidden"
+      aria-hidden="true"
+    >
+      {/* Deep base */}
+      <div className="absolute inset-0 bg-[#030303]" />
+
+      {/* Very subtle micro texture */}
+      <div
+        className="absolute inset-0 opacity-[0.028]"
+        style={{
+          backgroundImage: `
+            radial-gradient(
+              circle at 1px 1px,
+              rgba(244,240,232,0.85) 0.7px,
+              transparent 0.9px
+            )
+          `,
+          backgroundSize: "26px 26px",
+        }}
+      />
+
+      {/* Main radar rings */}
+      <motion.div
+        className="absolute left-1/2 top-1/2 h-[26rem] w-[26rem] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/[0.035] sm:h-[38rem] sm:w-[38rem] lg:h-[52rem] lg:w-[52rem]"
+        animate={
+          reduceMotion
+            ? {}
+            : {
+                rotate: 360,
+              }
+        }
+        transition={
+          reduceMotion
+            ? {}
+            : {
+                duration: 90,
+                repeat: Infinity,
+                ease: "linear",
+              }
+        }
+      >
+        <span className="absolute left-[13%] top-[9%] h-1.5 w-1.5 rounded-full bg-[var(--color-primary)]" />
+      </motion.div>
+
+      <motion.div
+        className="absolute left-1/2 top-1/2 h-[17rem] w-[17rem] -translate-x-1/2 -translate-y-1/2 rounded-full border border-[var(--color-primary)]/[0.055] sm:h-[25rem] sm:w-[25rem] lg:h-[34rem] lg:w-[34rem]"
+        animate={
+          reduceMotion
+            ? {}
+            : {
+                rotate: -360,
+              }
+        }
+        transition={
+          reduceMotion
+            ? {}
+            : {
+                duration: 68,
+                repeat: Infinity,
+                ease: "linear",
+              }
+        }
+      >
+        <span className="absolute right-[8%] top-[31%] h-1 w-1 rounded-full bg-[var(--color-primary-light)]" />
+      </motion.div>
+
+      {/* Elliptical orbital cut */}
+      <motion.div
+        className="absolute left-1/2 top-1/2 h-[13rem] w-[38rem] -translate-x-1/2 -translate-y-1/2 rounded-[50%] border border-white/[0.025] sm:h-[18rem] sm:w-[54rem]"
+        animate={
+          reduceMotion
+            ? {}
+            : {
+                rotate: [0, 4, 0, -4, 0],
+              }
+        }
+        transition={
+          reduceMotion
+            ? {}
+            : {
+                duration: 18,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }
+        }
+      />
+
+      {/* Radar sweep */}
+      {!reduceMotion && (
+        <motion.div
+          className="absolute left-1/2 top-1/2 h-[31rem] w-[1px] origin-bottom bg-gradient-to-t from-[var(--color-primary)]/30 via-[var(--color-primary)]/8 to-transparent sm:h-[44rem]"
           style={{
-            backgroundImage:
-              "linear-gradient(to right, currentColor 1px, transparent 1px), linear-gradient(to bottom, currentColor 1px, transparent 1px)",
-            backgroundSize: "48px 48px",
+            transformOrigin: "50% 100%",
+          }}
+          animate={{
+            rotate: 360,
+          }}
+          transition={{
+            duration: 14,
+            repeat: Infinity,
+            ease: "linear",
           }}
         />
+      )}
 
-        <div className="absolute inset-x-0 top-0 h-px bg-border-light" />
-        <div className="absolute inset-x-0 bottom-0 h-px bg-border-light" />
+      {/* Moving scan beam */}
+      {!reduceMotion && (
+        <>
+          <motion.div
+            className="absolute left-[-25%] top-[28%] h-px w-[26rem] bg-gradient-to-r from-transparent via-[var(--color-primary)]/45 to-transparent"
+            animate={{
+              x: ["0%", "520%"],
+              opacity: [0, 0.6, 0],
+            }}
+            transition={{
+              duration: 10,
+              repeat: Infinity,
+              repeatDelay: 3,
+              ease: "linear",
+            }}
+          />
+
+          <motion.div
+            className="absolute right-[-25%] top-[69%] h-px w-[22rem] bg-gradient-to-r from-transparent via-[var(--color-primary-light)]/30 to-transparent"
+            animate={{
+              x: ["0%", "-560%"],
+              opacity: [0, 0.4, 0],
+            }}
+            transition={{
+              duration: 13,
+              repeat: Infinity,
+              repeatDelay: 2,
+              ease: "linear",
+            }}
+          />
+        </>
+      )}
+
+      {/* Radar marks */}
+      {RADAR_MARKS.map((mark, index) => (
+        <motion.div
+          key={index}
+          className="absolute"
+          style={{
+            top: mark.top,
+            left: mark.left,
+            rotate: `${mark.rotate}deg`,
+          }}
+          animate={
+            reduceMotion
+              ? {}
+              : {
+                  opacity: [0.2, 0.55, 0.2],
+                }
+          }
+          transition={
+            reduceMotion
+              ? {}
+              : {
+                  duration: 4,
+                  delay: index * 0.35,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }
+          }
+        >
+          <div className="relative h-5 w-5">
+            <span className="absolute left-1/2 top-0 h-2 w-px -translate-x-1/2 bg-[var(--color-primary)]/50" />
+            <span className="absolute bottom-0 left-1/2 h-2 w-px -translate-x-1/2 bg-[var(--color-primary)]/50" />
+            <span className="absolute left-0 top-1/2 h-px w-2 -translate-y-1/2 bg-[var(--color-primary)]/50" />
+            <span className="absolute right-0 top-1/2 h-px w-2 -translate-y-1/2 bg-[var(--color-primary)]/50" />
+          </div>
+        </motion.div>
+      ))}
+
+      {/* Small floating particles */}
+      {PARTICLES.map((particle, index) => (
+        <motion.span
+          key={index}
+          className="absolute h-1 w-1 rounded-full bg-[var(--color-primary)]"
+          style={{
+            top: particle.top,
+            left: particle.left,
+          }}
+          animate={
+            reduceMotion
+              ? {}
+              : {
+                  opacity: [0.08, 0.55, 0.08],
+                  scale: [0.7, 1.4, 0.7],
+                }
+          }
+          transition={
+            reduceMotion
+              ? {}
+              : {
+                  duration: 3.8,
+                  delay: particle.delay,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }
+          }
+        />
+      ))}
+
+      {/* Technical corner brackets */}
+      <div className="absolute left-5 top-6 h-9 w-9 border-l border-t border-[var(--color-primary)]/[0.1] sm:left-8 sm:top-8" />
+      <div className="absolute right-5 top-6 h-9 w-9 border-r border-t border-[var(--color-primary)]/[0.1] sm:right-8 sm:top-8" />
+      <div className="absolute bottom-6 left-5 h-9 w-9 border-b border-l border-[var(--color-primary)]/[0.1] sm:bottom-8 sm:left-8" />
+      <div className="absolute bottom-6 right-5 h-9 w-9 border-b border-r border-[var(--color-primary)]/[0.1] sm:bottom-8 sm:right-8" />
+
+      {/* Tiny status labels */}
+      <div className="absolute left-8 top-24 hidden font-mono text-[7px] uppercase tracking-[0.22em] text-text-muted/35 sm:block">
+        SIGNAL / ACTIVE
       </div>
 
-      <div className="pointer-events-none absolute left-1/2 top-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-[140px]" />
-    </>
+      <div className="absolute bottom-24 right-8 hidden font-mono text-[7px] uppercase tracking-[0.22em] text-text-muted/35 sm:block">
+        CLASSIFIED / 03
+      </div>
+
+      {/* Section edges */}
+      <div className="absolute inset-x-0 top-0 h-px bg-border-light" />
+      <div className="absolute inset-x-0 bottom-0 h-px bg-border-light" />
+    </div>
   );
 }
 
@@ -111,6 +339,8 @@ function SpeakerCard({ speaker, index }) {
   const [isFlipped, setIsFlipped] = useState(false);
   const [selectedAnswer, setSelectedAnswer] = useState("");
   const [response, setResponse] = useState(null);
+
+  const reduceMotion = useReducedMotion();
 
   const handlePointerEnter = (event) => {
     if (event.pointerType === "mouse") {
@@ -186,7 +416,7 @@ function SpeakerCard({ speaker, index }) {
 
   return (
     <motion.article
-      initial={{ opacity: 0, y: 32 }}
+      initial={{ opacity: 0, y: reduceMotion ? 0 : 32 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.2 }}
       transition={{
@@ -217,10 +447,13 @@ function SpeakerCard({ speaker, index }) {
           }`}
         >
           {/* FRONT */}
-          <div className="flip-face flip-face-front absolute inset-0 overflow-hidden rounded-2xl border border-border-light bg-surface-light shadow-card">
+          <div className="flip-face flip-face-front absolute inset-0 overflow-hidden rounded-2xl border border-border-light bg-[#080808] shadow-card">
             <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/80" />
 
-            <div className="absolute left-5 top-5 z-10 flex items-center gap-2 rounded-full border border-border-light bg-black/30 px-3 py-1.5 backdrop-blur-md">
+            {/* Card scan detail */}
+            <div className="pointer-events-none absolute inset-x-0 top-16 h-px bg-gradient-to-r from-transparent via-[var(--color-primary)]/10 to-transparent" />
+
+            <div className="absolute left-5 top-5 z-10 flex items-center gap-2 rounded-full border border-border-light bg-black/55 px-3 py-1.5">
               <span className="font-mono text-[10px] tracking-[0.18em] text-text-muted">
                 FILE {speaker.number}
               </span>
@@ -263,8 +496,8 @@ function SpeakerCard({ speaker, index }) {
           </div>
 
           {/* BACK */}
-          <div className="flip-face flip-face-back absolute inset-0 overflow-hidden rounded-2xl border border-border-orange bg-surface-light shadow-card">
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.06] via-transparent to-black/20" />
+          <div className="flip-face flip-face-back absolute inset-0 overflow-hidden rounded-2xl border border-border-orange bg-[#080808] shadow-card">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.035] via-transparent to-black/20" />
 
             <div className="relative z-10 flex h-full flex-col p-6 sm:p-7">
               <div className="flex items-start justify-between gap-4">
@@ -283,7 +516,7 @@ function SpeakerCard({ speaker, index }) {
                   onPointerDown={(event) => event.stopPropagation()}
                   onPointerUp={(event) => event.stopPropagation()}
                   onClick={handleClose}
-                  className="shrink-0 rounded-full border border-border-light bg-surface-light px-3 py-2 font-mono text-[10px] uppercase tracking-[0.15em] text-text-muted transition hover:border-border-orange hover:text-text-primary"
+                  className="shrink-0 rounded-full border border-border-light bg-black/30 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.15em] text-text-muted transition hover:border-border-orange hover:text-text-primary"
                 >
                   Close
                 </button>
@@ -293,7 +526,7 @@ function SpeakerCard({ speaker, index }) {
                 {speaker.clues.map((clue, clueIndex) => (
                   <div
                     key={clue}
-                    className="flex gap-3 rounded-xl border border-border-light bg-black/10 p-4"
+                    className="flex gap-3 rounded-xl border border-border-light bg-black/20 p-4"
                   >
                     <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-border-orange/40 bg-primary/10">
                       <span className="font-mono text-[10px] text-primary">
@@ -329,7 +562,7 @@ function SpeakerCard({ speaker, index }) {
                     value={selectedAnswer}
                     onChange={(event) => setSelectedAnswer(event.target.value)}
                     placeholder="Speaker name..."
-                    className="min-w-0 flex-1 rounded-xl border border-border-light bg-black/20 px-4 py-3 text-sm text-text-primary outline-none placeholder:text-text-muted focus:border-border-orange"
+                    className="min-w-0 flex-1 rounded-xl border border-border-light bg-black/25 px-4 py-3 text-sm text-text-primary outline-none placeholder:text-text-muted focus:border-border-orange"
                   />
 
                   <button
@@ -347,11 +580,11 @@ function SpeakerCard({ speaker, index }) {
 
       {response && (
         <div
-          className="absolute inset-0 z-30 flex items-center justify-center rounded-2xl bg-black/70 p-6 backdrop-blur-md"
+          className="absolute inset-0 z-30 flex items-center justify-center rounded-2xl bg-black/75 p-6"
           onClick={handleResponseClose}
         >
           <div
-            className="w-full max-w-sm rounded-2xl border border-border-light bg-surface-light p-6 text-center shadow-card"
+            className="w-full max-w-sm rounded-2xl border border-border-light bg-[#0a0a0a] p-6 text-center shadow-card"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-xl text-primary">
@@ -384,13 +617,13 @@ export default function GuessSpeakers() {
   return (
     <section
       id="speakers"
-      className="relative isolate overflow-hidden bg-app-bg px-5 py-20 sm:px-8 lg:px-12"
+      className="relative isolate overflow-hidden bg-[#030303] px-5 py-20 sm:px-8 lg:px-12"
     >
       <SectionBackdrop />
 
       <div className="relative z-10 mx-auto max-w-7xl">
         <div className="mx-auto max-w-2xl text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-border-light bg-surface-light px-4 py-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-text-muted backdrop-blur-md">
+          <div className="inline-flex items-center gap-2 rounded-full border border-border-light bg-black/35 px-4 py-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-text-muted">
             <span className="h-1.5 w-1.5 rounded-full bg-primary" />
             Investigate the files
           </div>
@@ -409,7 +642,7 @@ export default function GuessSpeakers() {
             {META_ITEMS.map((item) => (
               <span
                 key={item}
-                className="rounded-full border border-border-light bg-surface-light px-3 py-1.5 font-mono text-[9px] uppercase tracking-[0.14em] text-text-muted"
+                className="rounded-full border border-border-light bg-black/35 px-3 py-1.5 font-mono text-[9px] uppercase tracking-[0.14em] text-text-muted"
               >
                 {item}
               </span>

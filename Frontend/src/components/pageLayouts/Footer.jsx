@@ -27,10 +27,6 @@ function useWordmarkFont() {
   }, []);
 }
 
-/**
- * Site footer for DevTalks — Guess the Speaker.
- * Minimal: wordmark + team credit.
- */
 export default function Footer() {
   useWordmarkFont();
 
@@ -42,11 +38,59 @@ export default function Footer() {
         duration: 0.6,
         ease: [0.16, 1, 0.3, 1],
       }}
-      className="relative border-t border-[var(--color-border)] bg-[var(--color-bg-secondary)]"
+      className="relative overflow-hidden border-t border-[var(--color-border)] bg-[#080808]"
     >
+      {/* Navbar-style background */}
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.018]"
+        aria-hidden="true"
+        style={{
+          backgroundImage: `
+            radial-gradient(
+              circle at 1px 1px,
+              rgba(244, 240, 232, 0.8) 0.8px,
+              transparent 0.9px
+            )
+          `,
+          backgroundSize: "28px 28px",
+        }}
+      />
+
+      {/* Subtle top accent */}
+      <motion.div
+        className="pointer-events-none absolute left-1/2 top-0 h-px w-[55%] -translate-x-1/2 bg-gradient-to-r from-transparent via-[var(--color-primary)]/35 to-transparent"
+        animate={{
+          opacity: [0.25, 0.5, 0.25],
+        }}
+        transition={{
+          duration: 5,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+      />
+
+      {/* Very subtle moving signal */}
+      <motion.div
+        className="pointer-events-none absolute left-[-15%] top-1/2 h-px w-40 bg-gradient-to-r from-transparent via-[var(--color-primary)]/20 to-transparent"
+        animate={{
+          x: ["0%", "850%"],
+          opacity: [0, 0.5, 0],
+        }}
+        transition={{
+          duration: 12,
+          repeat: Infinity,
+          repeatDelay: 4,
+          ease: "linear",
+        }}
+      />
+
       <div className="relative flex w-full flex-nowrap items-center justify-between gap-2 px-4 py-4 sm:gap-3 sm:px-6 sm:py-6 lg:px-8">
         {/* Logo mark */}
-        <Link to="/" className="group flex shrink-0 items-center">
+        <Link
+          to="/"
+          className="group flex shrink-0 items-center"
+          aria-label="DevKraft home"
+        >
           <img
             src="/logo/devkraft.png"
             alt="DevTalks"

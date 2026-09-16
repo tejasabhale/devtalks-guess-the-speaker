@@ -2,54 +2,233 @@ import { motion, useReducedMotion } from "framer-motion";
 
 const ROLES = ["Developers", "Designers", "Builders", "Problem solvers"];
 
+const SIGNALS = [
+  { top: "14%", left: "8%", delay: 0 },
+  { top: "26%", left: "82%", delay: 1.8 },
+  { top: "68%", left: "14%", delay: 3.2 },
+  { top: "78%", left: "88%", delay: 4.6 },
+  { top: "42%", left: "92%", delay: 2.4 },
+  { top: "84%", left: "42%", delay: 5.2 },
+];
+
 export default function AboutClub() {
   const reduceMotion = useReducedMotion();
 
   return (
     <section
       id="about-club"
-      className="relative flex min-h-screen w-full items-center overflow-hidden border-y border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-5 py-20 sm:px-8 sm:py-24 lg:px-10 lg:py-16"
+      className="relative flex min-h-screen w-full items-center overflow-hidden border-y border-[var(--color-border)] bg-[#050505] px-5 py-20 sm:px-8 sm:py-24 lg:px-10 lg:py-16"
     >
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.03]"
-        style={{
-          backgroundImage: `
-            linear-gradient(
-              rgba(244, 240, 232, 0.45) 1px,
-              transparent 1px
-            ),
-            linear-gradient(
-              90deg,
-              rgba(244, 240, 232, 0.45) 1px,
-              transparent 1px
-            )
-          `,
-          backgroundSize: "64px 64px",
-        }}
-      />
+      {/* Premium signal-field background */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        {/* Fine particles */}
+        <div
+          className="absolute inset-0 opacity-[0.035]"
+          style={{
+            backgroundImage: `
+              radial-gradient(
+                circle,
+                rgba(255, 255, 255, 0.9) 0.7px,
+                transparent 0.9px
+              )
+            `,
+            backgroundSize: "28px 28px",
+          }}
+        />
 
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        whileInView={{ opacity: 1, scale: 1 }}
-        viewport={{ once: true }}
-        transition={{
-          duration: 1,
-          ease: [0.16, 1, 0.3, 1],
-        }}
-        className="pointer-events-none absolute left-1/2 top-1/2 h-[24rem] w-[24rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--color-primary)]/10 blur-[120px] sm:h-[32rem] sm:w-[32rem] lg:h-[38rem] lg:w-[38rem]"
-      />
+        {/* Large orbital rings */}
+        <motion.div
+          animate={
+            reduceMotion
+              ? {}
+              : {
+                  rotate: 360,
+                }
+          }
+          transition={
+            reduceMotion
+              ? {}
+              : {
+                  duration: 70,
+                  repeat: Infinity,
+                  ease: "linear",
+                }
+          }
+          className="absolute left-1/2 top-1/2 h-[42rem] w-[42rem] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/[0.035]"
+        >
+          <span className="absolute left-[8%] top-[18%] h-1.5 w-1.5 rounded-full bg-[var(--color-primary)] opacity-70" />
+        </motion.div>
+
+        <motion.div
+          animate={
+            reduceMotion
+              ? {}
+              : {
+                  rotate: -360,
+                }
+          }
+          transition={
+            reduceMotion
+              ? {}
+              : {
+                  duration: 95,
+                  repeat: Infinity,
+                  ease: "linear",
+                }
+          }
+          className="absolute left-1/2 top-1/2 h-[58rem] w-[58rem] -translate-x-1/2 -translate-y-1/2 rounded-full border border-[var(--color-primary)]/[0.045]"
+        >
+          <span className="absolute right-[13%] top-[30%] h-1 w-1 rounded-full bg-[var(--color-primary-light)] opacity-60" />
+        </motion.div>
+
+        <motion.div
+          animate={
+            reduceMotion
+              ? {}
+              : {
+                  rotate: 360,
+                }
+          }
+          transition={
+            reduceMotion
+              ? {}
+              : {
+                  duration: 120,
+                  repeat: Infinity,
+                  ease: "linear",
+                }
+          }
+          className="absolute left-1/2 top-1/2 h-[72rem] w-[72rem] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/[0.02]"
+        />
+
+        {/* Moving signal lines */}
+        {!reduceMotion && (
+          <>
+            <motion.span
+              initial={{ x: "-120%", opacity: 0 }}
+              animate={{ x: "220%", opacity: [0, 0.18, 0] }}
+              transition={{
+                duration: 10,
+                repeat: Infinity,
+                repeatDelay: 3,
+                ease: "linear",
+              }}
+              className="absolute left-0 top-[24%] h-px w-[28rem] bg-gradient-to-r from-transparent via-[var(--color-primary)] to-transparent"
+            />
+
+            <motion.span
+              initial={{ x: "120%", opacity: 0 }}
+              animate={{ x: "-220%", opacity: [0, 0.12, 0] }}
+              transition={{
+                duration: 13,
+                repeat: Infinity,
+                repeatDelay: 2,
+                ease: "linear",
+              }}
+              className="absolute right-0 top-[74%] h-px w-[24rem] bg-gradient-to-r from-transparent via-[var(--color-primary-light)] to-transparent"
+            />
+          </>
+        )}
+
+        {/* Floating signal points */}
+        {SIGNALS.map((signal, index) => (
+          <motion.span
+            key={index}
+            className="absolute h-1 w-1 rounded-full bg-[var(--color-primary)]"
+            style={{
+              top: signal.top,
+              left: signal.left,
+            }}
+            animate={
+              reduceMotion
+                ? {}
+                : {
+                    opacity: [0.08, 0.55, 0.08],
+                    scale: [0.8, 1.5, 0.8],
+                  }
+            }
+            transition={
+              reduceMotion
+                ? {}
+                : {
+                    duration: 3.5,
+                    delay: signal.delay,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }
+            }
+          />
+        ))}
+
+        {/* Technical corner markers */}
+        <motion.div
+          className="absolute left-[5%] top-[12%] h-10 w-10 border-l border-t border-[var(--color-primary)]/[0.12]"
+          animate={
+            reduceMotion
+              ? {}
+              : {
+                  opacity: [0.2, 0.55, 0.2],
+                }
+          }
+          transition={
+            reduceMotion
+              ? {}
+              : {
+                  duration: 4,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }
+          }
+        />
+
+        <motion.div
+          className="absolute bottom-[12%] right-[5%] h-10 w-10 border-b border-r border-[var(--color-primary)]/[0.12]"
+          animate={
+            reduceMotion
+              ? {}
+              : {
+                  opacity: [0.2, 0.5, 0.2],
+                }
+          }
+          transition={
+            reduceMotion
+              ? {}
+              : {
+                  duration: 5,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }
+          }
+        />
+
+        {/* Very subtle center pulse */}
+        {!reduceMotion && (
+          <motion.div
+            initial={{ opacity: 0.02, scale: 0.9 }}
+            animate={{
+              opacity: [0.02, 0.06, 0.02],
+              scale: [0.9, 1.05, 0.9],
+            }}
+            transition={{
+              duration: 8,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+            className="absolute left-1/2 top-1/2 h-[20rem] w-[20rem] -translate-x-1/2 -translate-y-1/2 rounded-full border border-[var(--color-primary)]/[0.04]"
+          />
+        )}
+      </div>
 
       <div className="relative z-10 mx-auto grid w-full max-w-[1600px] items-center gap-12 sm:gap-16 lg:grid-cols-[0.9fr_1.1fr] lg:gap-20 xl:gap-24">
+        {/* Left */}
         <motion.div
           initial={{
             opacity: 0,
-            x: -30,
-            filter: "blur(6px)",
+            x: reduceMotion ? 0 : -30,
           }}
           whileInView={{
             opacity: 1,
             x: 0,
-            filter: "blur(0px)",
           }}
           viewport={{
             once: true,
@@ -71,8 +250,7 @@ export default function AboutClub() {
 
           <h2 className="mt-5 text-4xl font-bold leading-[0.96] tracking-[-0.05em] text-[var(--color-text-primary)] sm:text-5xl md:text-6xl lg:text-[3.8rem] xl:text-[4.25rem]">
             More than
-            <br />
-            a club.
+            <br />a club.
             <span className="mt-2 block text-[var(--color-text-secondary)]">
               It's where
               <br />
@@ -93,24 +271,24 @@ export default function AboutClub() {
               delay: 0.2,
               ease: [0.16, 1, 0.3, 1],
             }}
-            className="mt-7 h-px bg-[var(--color-primary-light)] shadow-[0_0_10px_rgba(255,122,69,0.3)] sm:mt-8"
+            className="mt-7 h-px bg-[var(--color-primary-light)] sm:mt-8"
           />
 
           <div className="mt-4 font-mono text-[8px] uppercase tracking-[0.22em] text-[var(--color-text-muted)] sm:text-[9px]">
-            CURIOUS MINDS → REAL BUILDS
+            CURIOUS MINDS <span className="text-[var(--color-primary)]">→</span>{" "}
+            REAL BUILDS
           </div>
         </motion.div>
 
+        {/* Right */}
         <motion.div
           initial={{
             opacity: 0,
-            y: 25,
-            filter: "blur(6px)",
+            y: reduceMotion ? 0 : 25,
           }}
           whileInView={{
             opacity: 1,
             y: 0,
-            filter: "blur(0px)",
           }}
           viewport={{
             once: true,
@@ -131,9 +309,9 @@ export default function AboutClub() {
 
             <p className="mt-5 text-base leading-relaxed text-[var(--color-text-secondary)] sm:text-lg md:text-xl">
               We create a space where developers, designers, problem-solvers,
-              and technology enthusiasts can learn from one another,
-              collaborate on projects, explore emerging technologies, and turn
-              ideas into real experiences.
+              and technology enthusiasts can learn from one another, collaborate
+              on projects, explore emerging technologies, and turn ideas into
+              real experiences.
             </p>
 
             <div className="mt-9 border-t border-[var(--color-border)] pt-7 sm:mt-10 sm:pt-8">
@@ -164,7 +342,7 @@ export default function AboutClub() {
 
                     {index < ROLES.length - 1 && (
                       <span
-                        className="font-mono text-[var(--color-primary)]"
+                        className="font-mono text-[var(--color-primary-dark)]"
                         aria-hidden="true"
                       >
                         +
@@ -181,14 +359,21 @@ export default function AboutClub() {
                 </span>
 
                 <span className="text-sm font-semibold text-[var(--color-text-primary)] sm:text-base md:text-lg">
-                  DevKraft
+                  <span className="text-[var(--color-primary-light)]">Dev</span>
+                  Kraft
                 </span>
               </div>
             </div>
 
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              initial={{
+                opacity: 0,
+                y: reduceMotion ? 0 : 10,
+              }}
+              whileInView={{
+                opacity: 1,
+                y: 0,
+              }}
               viewport={{ once: true }}
               transition={{
                 delay: 0.35,
@@ -197,8 +382,11 @@ export default function AboutClub() {
               className="mt-8 flex items-center gap-3 sm:mt-9"
             >
               <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--color-primary)] opacity-50" />
-                <span className="relative h-2 w-2 rounded-full bg-[var(--color-primary)] shadow-[0_0_8px_var(--color-primary)]" />
+                {!reduceMotion && (
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--color-primary)] opacity-40" />
+                )}
+
+                <span className="relative h-2 w-2 rounded-full bg-[var(--color-primary-light)]" />
               </span>
 
               <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-[var(--color-text-muted)] sm:text-[9px]">

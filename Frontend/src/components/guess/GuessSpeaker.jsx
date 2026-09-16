@@ -5,21 +5,15 @@ import { useState, useRef } from "react";
  *
  * Three nested layers, one job each:
  *   .flip-scene  — perspective + entry animation + mouse handlers
- *   .tilt-layer  — the pointer tilt only (preserve-3d so the flip inherits depth)
- *   .flip-inner  — the rotateY(180deg) flip, preserve-3d
+ *   .tilt-layer  — pointer tilt only
+ *   .flip-inner  — rotateY(180deg) flip
  *
- * Front face holds the portrait + label + guess form, so the form stays
- * reachable without flipping. Back face holds only the evidence list.
- * Desktop flips on hover (and on focus-within, so keyboard users tabbing to
- * the input never trigger it — the input lives on the front already; the
- * evidence side never gets keyboard focus, so focus-within on the back
- * doesn't apply, but the rule is symmetric and harmless). Touch flips on the
- * `clueOpen` state, toggled by tapping the card. The hover rule stays scoped
- * to `(hover: hover)` so a tap can't leave a touchscreen card stuck mid-flip.
+ * Desktop:
+ *   - Hover/focus flips the card.
  *
- * The pointer-tracking radial glows and the --pointer-x/--pointer-y custom
- * properties are gone. The static glow behind the silhouette is not
- * pointer-driven and stays.
+ * Mobile/touch:
+ *   - Tapping the card toggles the flip.
+ *   - Tapping the form/input/button does not flip the card.
  */
 
 const RESPONSES = [
@@ -102,14 +96,16 @@ function SpeakerCard({ slot, index }) {
       return;
     }
 
+    // Disable pointer tilt on touch/mobile devices.
+    if (!window.matchMedia("(hover: hover)").matches) {
+      return;
+    }
+
     const rect = element.getBoundingClientRect();
 
     const px = (event.clientX - rect.left) / rect.width - 0.5;
-
     const py = (event.clientY - rect.top) / rect.height - 0.5;
 
-    // Clamped tighter than before (±4° instead of ±6°) so the tilt reads as a
-    // lean under the flip rather than competing with it.
     setTilt({
       x: px * -4,
       y: py * 4,
@@ -121,8 +117,13 @@ function SpeakerCard({ slot, index }) {
   }
 
   function handleCardClick(event) {
-    // Tapping the input or the button must not flip the card back out from
-    // under the person typing.
+    // Desktop uses hover/focus to flip.
+    // Click-to-flip is only enabled for touch/mobile devices.
+    if (window.matchMedia("(hover: hover)").matches) {
+      return;
+    }
+
+    // Never flip while interacting with the guess form.
     if (event.target.closest("form")) {
       return;
     }
@@ -370,7 +371,11 @@ function SpeakerCard({ slot, index }) {
         @keyframes pulse-dot {
           0%,
           100% {
-            box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-primary) 45%, transparent);
+            box-shadow: 0 0 0 0 color-mix(
+              in srgb,
+              var(--color-primary) 45%,
+              transparent
+            );
           }
 
           50% {
@@ -476,6 +481,7 @@ function SpeakerCard({ slot, index }) {
 
         .flip-scene {
           perspective: 1200px;
+          cursor: pointer;
         }
 
         .tilt-layer {
@@ -497,17 +503,21 @@ function SpeakerCard({ slot, index }) {
         }
 
         .flip-face-back {
-          transform: rotateX(180deg);
+          transform: rotateY(180deg);
         }
 
         .flip-scene.is-flipped .flip-inner {
-          transform: rotateX(180deg);
+          transform: rotateY(180deg);
         }
 
         @media (hover: hover) {
+          .flip-scene {
+            cursor: default;
+          }
+
           .flip-scene:hover .flip-inner,
           .flip-scene:focus-within .flip-inner {
-            transform: rotateX(180deg);
+            transform: rotateY(180deg);
           }
         }
 
@@ -520,7 +530,11 @@ function SpeakerCard({ slot, index }) {
           height: 3px;
           border-radius: 999px;
           background: var(--color-primary-light);
-          box-shadow: 0 0 8px color-mix(in srgb, var(--color-primary-light) 50%, transparent);
+          box-shadow: 0 0 8px color-mix(
+            in srgb,
+            var(--color-primary-light) 50%,
+            transparent
+          );
           pointer-events: none;
           opacity: 0;
         }
@@ -563,7 +577,7 @@ function SpeakerCard({ slot, index }) {
           }
         }
 
-        /* ---- clue stagger, fires once the card has landed flat ---- */
+        /* ---- clue stagger ---- */
 
         .clue-line {
           opacity: 0;
@@ -614,7 +628,6 @@ function SpeakerCard({ slot, index }) {
             transition: none !important;
           }
 
-          /* Flip still happens, just instantly — the back must stay reachable. */
           .clue-line {
             opacity: 1;
             transform: none;
@@ -631,7 +644,6 @@ export default function GuessSpeakers() {
       <SectionBackdrop />
 
       <div className="relative z-10 mx-auto w-full max-w-[1800px]">
-        {/* Eyebrow badge, matches the Hero's language */}
         <div
           className="mb-6 inline-flex items-center gap-2 rounded-full border border-border-light bg-app-bg/70 px-3 py-1 font-mono text-[11px] uppercase tracking-widest text-text-secondary backdrop-blur-sm"
           style={{
@@ -661,7 +673,6 @@ export default function GuessSpeakers() {
             </p>
           </div>
 
-          {/* Status meta, echoes the Hero + Footer for continuity */}
           <div
             className="flex flex-wrap items-center gap-x-3 gap-y-2 font-mono text-[11px] uppercase tracking-widest text-text-muted lg:justify-end"
             style={{
@@ -675,6 +686,7 @@ export default function GuessSpeakers() {
                   <span className="h-1.5 w-1.5 rounded-full bg-primary/70" />
                   {item}
                 </span>
+
                 {index < META_ITEMS.length - 1 && (
                   <span className="text-border-light">|</span>
                 )}
@@ -693,7 +705,10 @@ export default function GuessSpeakers() {
   );
 }
 
-/** Faint stage-floor grid + ambient glow, ties this section back to the Hero/Loader. */
+/**
+ * Faint stage-floor grid + ambient glow,
+ * ties this section back to the Hero/Loader.
+ */
 function SectionBackdrop() {
   return (
     <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
@@ -709,6 +724,7 @@ function SectionBackdrop() {
             "radial-gradient(ellipse 80% 60% at 50% 0%, black 0%, transparent 70%)",
         }}
       />
+
       <div
         className="absolute left-1/2 top-0 h-[380px] w-[720px] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-60 blur-[140px]"
         style={{

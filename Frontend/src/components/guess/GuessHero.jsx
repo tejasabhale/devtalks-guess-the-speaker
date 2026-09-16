@@ -1,15 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import "./guessHero.css";
 
-/**
- * Note: the rgba(244,240,232,...) values that were here map exactly to
- * --color-text-primary (#f4f0e8), so they're now color-mix() against
- * that token. guessHero.css wasn't shared with me, so if it has its own
- * hardcoded hex/rgba (the spotlight/beam/glow colors likely live there),
- * it'll need the same treatment — happy to do that pass too if you paste
- * its contents.
- */
-
 const EVENT_TARGET = new Date(Date.now() + 1000 * 60 * 60 * 26).getTime();
 
 function useCountdown(target) {
@@ -119,7 +110,6 @@ export default function GuessHero() {
         <div className="guess-hero__vignette absolute inset-0" />
       </div>
 
-      {/* ── Speaker stage: 3 dark figures under conical spotlights ── */}
       <div
         className="guess-hero__stage pointer-events-none absolute inset-0 -z-20"
         aria-hidden="true"
@@ -155,7 +145,7 @@ export default function GuessHero() {
       />
 
       <div className="relative z-10 flex w-full max-w-4xl flex-col items-center text-center">
-        <div className="mb-8 inline-flex items-center gap-2.5 rounded-full border border-border-light bg-surface-light px-4 py-1.5 text-sm text-text-secondary backdrop-blur-md">
+        <div className="mb-8 inline-flex items-center gap-2.5 rounded-full border border-border-light bg-surface-light px-4 py-1.5 text-sm font-medium text-text-secondary backdrop-blur-md">
           <span
             className="h-1.5 w-1.5 rounded-full bg-primary"
             style={{
@@ -163,18 +153,19 @@ export default function GuessHero() {
                 "0 0 10px color-mix(in srgb, var(--color-primary) 70%, transparent)",
             }}
           />
+
           <span>DevKraft presents DevTalks</span>
         </div>
 
         <div className="relative">
           <div className="absolute left-1/2 top-1/2 h-40 w-80 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-[100px]" />
 
-          <h1 className="relative max-w-3xl text-balance text-5xl font-semibold leading-[1.05] tracking-tight text-gradient sm:text-6xl md:text-7xl">
+          <h1 className="relative max-w-3xl text-balance text-5xl font-bold leading-[1.05] tracking-tight text-gradient sm:text-6xl md:text-7xl">
             Guess the speaker
           </h1>
         </div>
 
-        <p className="mt-6 max-w-lg text-base leading-relaxed text-text-secondary sm:text-lg">
+        <p className="mt-6 max-w-lg text-base font-medium leading-relaxed text-text-secondary sm:text-lg">
           Three names are locked behind the countdown. Study the clues, place
           your guess for each one, and see how close you get before the reveal.
         </p>
@@ -183,16 +174,17 @@ export default function GuessHero() {
           {units.map((unit, index) => (
             <div key={unit.label} className="flex items-center gap-2 sm:gap-4">
               <div className="glass flex w-[4.25rem] flex-col items-center rounded-lg px-2 py-3 shadow-card sm:w-20 sm:rounded-xl sm:px-3 sm:py-3.5">
-                <span className="text-2xl font-semibold tabular-nums text-text-primary sm:text-3xl">
+                <span className="text-2xl font-bold tabular-nums text-text-primary sm:text-3xl">
                   {pad(unit.value)}
                 </span>
-                <span className="mt-1 text-[9px] uppercase tracking-widest text-text-muted sm:text-[11px]">
+
+                <span className="mt-1 text-[9px] font-medium uppercase tracking-widest text-text-muted sm:text-[11px]">
                   {unit.label}
                 </span>
               </div>
 
               {index < units.length - 1 && (
-                <span className="text-xl text-border-orange sm:text-2xl">
+                <span className="text-xl font-bold text-border-orange sm:text-2xl">
                   :
                 </span>
               )}
@@ -200,14 +192,14 @@ export default function GuessHero() {
           ))}
         </div>
 
-        <div className="mt-10 inline-flex items-center gap-2 rounded-full border border-border-light bg-surface-light px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-text-muted backdrop-blur-sm">
+        <div className="mt-10 inline-flex items-center gap-2 rounded-full border border-border-light bg-surface-light px-3 py-1.5 font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-text-muted backdrop-blur-sm">
           <span className="h-1.5 w-1.5 rounded-full bg-primary/80" />
           identities remain classified
         </div>
       </div>
 
       <div className="absolute bottom-7 left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-1 text-text-muted">
-        <span className="font-mono text-[9px] uppercase tracking-[0.18em]">
+        <span className="font-mono text-[9px] font-medium uppercase tracking-[0.18em]">
           Scroll to investigate
         </span>
 

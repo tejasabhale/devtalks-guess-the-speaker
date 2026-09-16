@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import Hero from "../../components/home/Hero";
 
-const Home = () => {
+const Landing = () => {
   useEffect(() => {
     const hash = window.location.hash;
 
@@ -40,4 +40,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default Landing;

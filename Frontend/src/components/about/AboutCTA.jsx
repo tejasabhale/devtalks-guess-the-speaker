@@ -37,7 +37,7 @@ export default function AboutCTA() {
           }}
         >
           <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-[var(--color-primary-light)] sm:text-[10px]">
-            06 / EXPLORE THE ECOSYSTEM
+            03 / EXPLORE THE ECOSYSTEM
           </span>
 
           <h2 className="mt-5 text-4xl font-semibold leading-[1] tracking-[-0.05em] text-[var(--color-text-primary)] sm:text-6xl md:text-7xl lg:text-[5.5rem]">

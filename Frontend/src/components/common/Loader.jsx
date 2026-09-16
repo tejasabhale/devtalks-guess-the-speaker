@@ -1,9 +1,7 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import {
-  useWordmarkFont,
-  WORDMARK_FONT_CLASS,
-} from "../../hooks/useWordmarkFont";
+
+import { useWordmarkFont } from "../../hooks/useWordmarkFont";
 
 const EASE = [0.16, 1, 0.3, 1];
 
@@ -19,23 +17,36 @@ const GLITCH_AT = 900;
 const REVEAL_AT = 1500;
 const DEFAULT_DURATION = 2800;
 
+/*
+ * Exact same DevTalks wordmark styling used in Navbar + Footer.
+ *
+ * Font: Sora
+ * Weight: 800
+ * Letter spacing: -0.045em
+ */
+const WORDMARK_STYLE = {
+  fontFamily: "'Sora', sans-serif",
+  fontWeight: 800,
+  letterSpacing: "-0.045em",
+};
+
 /**
  * Full-screen "reveal" loader for DevTalks — Guess the Speaker.
- * A spotlight sweeps a dark stage, a glitching "?" stands in for the
- * mystery guest, then glitches apart into the DevTalks wordmark —
- * as cinematic as the Hero, at loader scale.
  *
- * Purely decorative and fixed-length: call `onComplete` (fired once,
- * after `duration`ms) to dismiss it from the parent rather than reading
- * any real asset-loading state.
+ * A spotlight sweeps across a dark stage, a glitching "?" represents
+ * the mystery guest, then resolves into the DevTalks wordmark.
  */
 export default function Loader({ onComplete, duration = DEFAULT_DURATION }) {
-  const [stage, setStage] = useState("scan"); // scan -> glitch -> reveal
+  const [stage, setStage] = useState("scan");
   const [phraseIndex, setPhraseIndex] = useState(0);
+
   const prefersReducedMotion = useReducedMotion();
 
   useWordmarkFont();
 
+  /*
+   * Fixed loader choreography.
+   */
   useEffect(() => {
     if (prefersReducedMotion) {
       setStage("reveal");
@@ -44,7 +55,9 @@ export default function Loader({ onComplete, duration = DEFAULT_DURATION }) {
     }
 
     const glitchTimer = setTimeout(() => setStage("glitch"), GLITCH_AT);
+
     const revealTimer = setTimeout(() => setStage("reveal"), REVEAL_AT);
+
     const completeTimer = setTimeout(() => onComplete?.(), duration);
 
     return () => {
@@ -52,14 +65,18 @@ export default function Loader({ onComplete, duration = DEFAULT_DURATION }) {
       clearTimeout(revealTimer);
       clearTimeout(completeTimer);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [prefersReducedMotion]);
+  }, [prefersReducedMotion, duration, onComplete]);
 
+  /*
+   * Rotating loading phrases.
+   */
   useEffect(() => {
     if (prefersReducedMotion) return undefined;
+
     const id = setInterval(() => {
       setPhraseIndex((i) => (i + 1) % LOADING_PHRASES.length);
     }, 1800);
+
     return () => clearInterval(id);
   }, [prefersReducedMotion]);
 
@@ -72,7 +89,7 @@ export default function Loader({ onComplete, duration = DEFAULT_DURATION }) {
     >
       <StageBackdrop reducedMotion={prefersReducedMotion} />
 
-      {/* Centerpiece: glitching "?" that resolves into the wordmark */}
+      {/* Centerpiece: glitching "?" -> DevTalks */}
       <div className="relative z-10 flex h-40 items-center justify-center sm:h-48">
         <AnimatePresence mode="wait">
           {stage !== "reveal" ? (
@@ -84,21 +101,48 @@ export default function Loader({ onComplete, duration = DEFAULT_DURATION }) {
           ) : (
             <motion.div
               key="wordmark"
-              initial={{ opacity: 0, scale: 0.92, filter: "blur(10px)" }}
-              animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-              transition={{ duration: 0.6, ease: EASE }}
+              initial={{
+                opacity: 0,
+                scale: 0.92,
+                filter: "blur(10px)",
+              }}
+              animate={{
+                opacity: 1,
+                scale: 1,
+                filter: "blur(0px)",
+              }}
+              transition={{
+                duration: 0.6,
+                ease: EASE,
+              }}
               className="relative flex flex-col items-center"
             >
+              {/* DevTalks wordmark */}
               <span
-                className={`select-none text-5xl font-semibold tracking-tight text-[var(--color-text-primary)] sm:text-6xl ${WORDMARK_FONT_CLASS}`}
+                style={WORDMARK_STYLE}
+                className="select-none text-5xl text-[var(--color-text-primary)] sm:text-6xl"
               >
-                Dev<span className="text-[var(--color-primary)]">Talks</span>
+                Dev
+                <span className="text-[var(--color-primary)]">Talks</span>
               </span>
+
+              {/* Brand glow */}
               <div className="pointer-events-none absolute inset-0 -z-10 bg-[var(--color-primary)]/25 opacity-70 blur-3xl" />
+
               <motion.p
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.25, ease: EASE }}
+                initial={{
+                  opacity: 0,
+                  y: 8,
+                }}
+                animate={{
+                  opacity: 1,
+                  y: 0,
+                }}
+                transition={{
+                  duration: 0.5,
+                  delay: 0.25,
+                  ease: EASE,
+                }}
                 className="mt-3 font-mono text-xs uppercase tracking-widest text-[var(--color-text-muted)] sm:text-sm"
               >
                 Guess the speaker
@@ -108,7 +152,7 @@ export default function Loader({ onComplete, duration = DEFAULT_DURATION }) {
         </AnimatePresence>
       </div>
 
-      {/* Equalizer strip — ambient audio flavor beneath the reveal */}
+      {/* Equalizer strip */}
       <div
         className="relative z-10 mt-8 flex h-10 items-end gap-2"
         aria-hidden="true"
@@ -120,7 +164,9 @@ export default function Loader({ onComplete, duration = DEFAULT_DURATION }) {
             animate={
               prefersReducedMotion
                 ? undefined
-                : { height: ["30%", "100%", "45%", "80%", "30%"] }
+                : {
+                    height: ["30%", "100%", "45%", "80%", "30%"],
+                  }
             }
             transition={{
               duration: 1.1 + i * 0.15,
@@ -128,7 +174,9 @@ export default function Loader({ onComplete, duration = DEFAULT_DURATION }) {
               ease: "easeInOut",
               delay: i * 0.08,
             }}
-            style={{ height: prefersReducedMotion ? "50%" : undefined }}
+            style={{
+              height: prefersReducedMotion ? "50%" : undefined,
+            }}
           />
         ))}
       </div>
@@ -138,11 +186,23 @@ export default function Loader({ onComplete, duration = DEFAULT_DURATION }) {
         <AnimatePresence mode="wait">
           <motion.p
             key={LOADING_PHRASES[phraseIndex]}
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.35, ease: EASE }}
-            className="font-mono text-sm tracking-widest uppercase text-[var(--color-text-muted)]"
+            initial={{
+              opacity: 0,
+              y: 6,
+            }}
+            animate={{
+              opacity: 1,
+              y: 0,
+            }}
+            exit={{
+              opacity: 0,
+              y: -6,
+            }}
+            transition={{
+              duration: 0.35,
+              ease: EASE,
+            }}
+            className="font-mono text-sm uppercase tracking-widest text-[var(--color-text-muted)]"
           >
             {LOADING_PHRASES[phraseIndex]}
           </motion.p>
@@ -153,67 +213,109 @@ export default function Loader({ onComplete, duration = DEFAULT_DURATION }) {
 }
 
 /**
- * The "mystery guest" placeholder: a large "?" built from three
- * stacked, color-offset layers that jitter apart during the glitch
- * stage, standing in for the unrevealed speaker.
+ * Mystery guest placeholder.
+ *
+ * Uses the same Sora 800 styling as the DevTalks wordmark so
+ * the transition from "?" to "DevTalks" feels visually connected.
  */
 function GlitchMark({ stage, reducedMotion }) {
   const glitching = stage === "glitch" && !reducedMotion;
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 1.05, filter: "blur(6px)" }}
-      transition={{ duration: 0.35, ease: EASE }}
-      className="relative select-none text-8xl font-bold sm:text-9xl"
+      initial={{
+        opacity: 0,
+        scale: 0.9,
+      }}
+      animate={{
+        opacity: 1,
+        scale: 1,
+      }}
+      exit={{
+        opacity: 0,
+        scale: 1.05,
+        filter: "blur(6px)",
+      }}
+      transition={{
+        duration: 0.35,
+        ease: EASE,
+      }}
+      className="relative select-none text-8xl sm:text-9xl"
     >
+      {/* Main question mark */}
       <span
-        className={`relative z-10 text-[var(--color-text-primary)] ${WORDMARK_FONT_CLASS}`}
+        style={WORDMARK_STYLE}
+        className="relative z-10 text-[var(--color-text-primary)]"
       >
         ?
       </span>
 
       {!reducedMotion && (
         <>
+          {/* Orange glitch layer */}
           <motion.span
             aria-hidden="true"
-            className={`absolute inset-0 z-0 text-[var(--color-primary)] mix-blend-screen ${WORDMARK_FONT_CLASS}`}
+            style={WORDMARK_STYLE}
+            className="absolute inset-0 z-0 text-[var(--color-primary)] mix-blend-screen"
             animate={
               glitching
-                ? { x: [0, -6, 4, -3, 0], opacity: [0, 0.8, 0.5, 0.7, 0] }
-                : { x: 0, opacity: 0 }
+                ? {
+                    x: [0, -6, 4, -3, 0],
+                    opacity: [0, 0.8, 0.5, 0.7, 0],
+                  }
+                : {
+                    x: 0,
+                    opacity: 0,
+                  }
             }
-            transition={{ duration: 0.45, ease: "easeInOut" }}
+            transition={{
+              duration: 0.45,
+              ease: "easeInOut",
+            }}
           >
             ?
           </motion.span>
+
+          {/* Light-orange glitch layer */}
           <motion.span
             aria-hidden="true"
-            className={`absolute inset-0 z-0 text-[var(--color-primary-light)] mix-blend-screen ${WORDMARK_FONT_CLASS}`}
+            style={WORDMARK_STYLE}
+            className="absolute inset-0 z-0 text-[var(--color-primary-light)] mix-blend-screen"
             animate={
               glitching
-                ? { x: [0, 6, -4, 3, 0], opacity: [0, 0.7, 0.4, 0.6, 0] }
-                : { x: 0, opacity: 0 }
+                ? {
+                    x: [0, 6, -4, 3, 0],
+                    opacity: [0, 0.7, 0.4, 0.6, 0],
+                  }
+                : {
+                    x: 0,
+                    opacity: 0,
+                  }
             }
-            transition={{ duration: 0.45, ease: "easeInOut", delay: 0.03 }}
+            transition={{
+              duration: 0.45,
+              ease: "easeInOut",
+              delay: 0.03,
+            }}
           >
             ?
           </motion.span>
         </>
       )}
 
-      {/* Ring pulse behind the mark, echoes the mic-ring language elsewhere on the site */}
+      {/* Ring pulse */}
       <span className="absolute left-1/2 top-1/2 -z-10 h-40 w-40 -translate-x-1/2 -translate-y-1/2 rounded-full border border-[var(--color-border-orange)] opacity-40" />
     </motion.div>
   );
 }
 
-/** Spotlight sweep + stage-floor grid + drifting embers, matching the Hero's language. */
+/**
+ * Spotlight sweep + stage-floor grid + drifting embers.
+ */
 function StageBackdrop({ reducedMotion }) {
   return (
     <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
-      {/* Stage-floor grid, masked to a soft vignette */}
+      {/* Stage-floor grid */}
       <div
         className="absolute inset-0 opacity-40"
         style={{
@@ -230,8 +332,15 @@ function StageBackdrop({ reducedMotion }) {
       {/* Sweeping spotlight beam */}
       {!reducedMotion && (
         <motion.div
-          animate={{ x: ["-30%", "30%", "-30%"], rotate: [0, 6, 0] }}
-          transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+          animate={{
+            x: ["-30%", "30%", "-30%"],
+            rotate: [0, 6, 0],
+          }}
+          transition={{
+            duration: 7,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
           className="absolute left-1/2 top-[-20%] h-[140%] w-[60%] -translate-x-1/2 opacity-70 blur-[50px]"
           style={{
             background:
@@ -245,9 +354,16 @@ function StageBackdrop({ reducedMotion }) {
         animate={
           reducedMotion
             ? undefined
-            : { opacity: [0.15, 0.28, 0.15], scale: [1, 1.08, 1] }
+            : {
+                opacity: [0.15, 0.28, 0.15],
+                scale: [1, 1.08, 1],
+              }
         }
-        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+        transition={{
+          duration: 6,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
         className="absolute left-1/2 top-1/2 h-[520px] w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[150px]"
         style={{
           backgroundColor:
@@ -285,7 +401,10 @@ function DriftingEmbers() {
             bottom: "-5%",
             boxShadow: "0 0 8px var(--color-primary)",
           }}
-          animate={{ y: ["0%", "-115vh"], opacity: [0, 0.7, 0] }}
+          animate={{
+            y: ["0%", "-115vh"],
+            opacity: [0, 0.7, 0],
+          }}
           transition={{
             duration: ember.duration,
             repeat: Infinity,

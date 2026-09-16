@@ -41,7 +41,7 @@ export default function AboutDevTalks() {
           transition={{ duration: 0.7 }}
         >
           <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-[var(--color-primary)] sm:text-xs">
-            03 / DEVTALKS
+            02 / DEVTALKS
           </span>
 
           <h2 className="mt-4 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">

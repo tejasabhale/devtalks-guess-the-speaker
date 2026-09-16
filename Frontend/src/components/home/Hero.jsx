@@ -4,11 +4,17 @@ import { Link } from "react-router-dom";
 /**
  * DevTalks hero section — DevKraft club
  *
- * Drop this into a Tailwind v4 project that already loads the @theme
- * tokens you shared (--color-primary, --color-app-bg, etc). Those tokens
- * are what power classes like `bg-app-bg`, `text-primary`, `bg-primary`,
- * `border-border-orange`, `shadow-orange`, `rounded-lg` and so on below —
- * nothing here is hard-coded to a hex value.
+ * Every themed color below is either a Tailwind utility backed by a
+ * @theme token (bg-app-bg, text-primary, border-border-orange, ...) or,
+ * for opacity-tinted glows/shadows, `color-mix(in srgb, var(--token) X%,
+ * transparent)` — so nothing here is a hardcoded hex/rgba that could
+ * drift from the design tokens.
+ *
+ * Two exceptions, left as plain black/white on purpose: the sheen
+ * highlight on the CTA and the darkest gradient stop in the backdrop.
+ * Neither corresponds to a token in your @theme (there's no "white"
+ * token, and no color matches #050505 exactly) — see the comments
+ * inline at each spot.
  */
 export default function HeroSection() {
   const heroRef = useRef(null);
@@ -69,8 +75,12 @@ export default function HeroSection() {
       ref={heroRef}
       className="relative isolate flex min-h-screen items-center justify-center overflow-hidden bg-app-bg"
       style={{
-        backgroundImage:
-          "radial-gradient(circle at 50% 0%, rgba(255,90,31,0.12), transparent 38%), linear-gradient(180deg, #080808 0%, #0b0b0b 55%, #050505 100%)",
+        backgroundImage: [
+          "radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--color-primary) 12%, transparent), transparent 38%)",
+          // No token matches #050505 exactly — mixing app-bg toward black
+          // keeps this tied to the token instead of a bare magic hex.
+          "linear-gradient(180deg, var(--color-app-bg) 0%, var(--color-app-bg-primary) 55%, color-mix(in srgb, var(--color-app-bg) 45%, black) 100%)",
+        ].join(", "),
       }}
     >
       {/* faint stage-floor grid, grounds the "stage" concept */}
@@ -95,7 +105,7 @@ export default function HeroSection() {
           "--mx": "50%",
           "--my": "40%",
           background:
-            "radial-gradient(circle 420px at var(--mx) var(--my), rgba(255,138,61,0.16), rgba(255,90,31,0.06) 35%, transparent 65%)",
+            "radial-gradient(circle 420px at var(--mx) var(--my), color-mix(in srgb, var(--color-accent) 16%, transparent), color-mix(in srgb, var(--color-primary) 6%, transparent) 35%, transparent 65%)",
         }}
       />
 
@@ -110,7 +120,13 @@ export default function HeroSection() {
         <div className="mb-5 flex items-center justify-center gap-4">
           <div className="devtalks-sway relative flex flex-shrink-0 origin-top items-center justify-center">
             <span className="devtalks-ring-pulse absolute -inset-3.5 rounded-full border border-border-orange" />
-            <MicIcon className="h-10 w-10 sm:h-14 sm:w-14 drop-shadow-[0_0_14px_rgba(255,90,31,0.45)]" />
+            <MicIcon
+              className="h-10 w-10 sm:h-14 sm:w-14"
+              style={{
+                filter:
+                  "drop-shadow(0 0 14px color-mix(in srgb, var(--color-primary) 45%, transparent))",
+              }}
+            />
           </div>
 
           <h1
@@ -137,9 +153,9 @@ export default function HeroSection() {
 
       <style>{`
         @keyframes devtalks-pulse-dot {
-          0%   { box-shadow: 0 0 0 0 rgba(255, 90, 31, 0.55); }
-          70%  { box-shadow: 0 0 0 10px rgba(255, 90, 31, 0); }
-          100% { box-shadow: 0 0 0 0 rgba(255, 90, 31, 0); }
+          0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-primary) 55%, transparent); }
+          70%  { box-shadow: 0 0 0 10px transparent; }
+          100% { box-shadow: 0 0 0 0 transparent; }
         }
         .devtalks-pulse-dot { animation: devtalks-pulse-dot 1.8s ease-out infinite; }
 
@@ -182,6 +198,10 @@ export default function HeroSection() {
         }
         .devtalks-btn-ring { animation: devtalks-btn-ring 2.2s cubic-bezier(0.16,1,0.3,1) infinite; }
 
+        .devtalks-guess-btn:hover {
+          box-shadow: 0 0 64px color-mix(in srgb, var(--color-primary) 45%, transparent);
+        }
+
         @media (prefers-reduced-motion: reduce) {
           .devtalks-pulse-dot, .devtalks-sway, .devtalks-ring-pulse,
           .devtalks-f1, .devtalks-f2, .devtalks-f3, .devtalks-f4, .devtalks-f5, .devtalks-f6,
@@ -205,7 +225,7 @@ function GuessButton() {
     <div className="flex flex-col items-center gap-3">
       <Link
         to="/guess"
-        className="group relative inline-flex items-center gap-2.5 overflow-hidden rounded-lg px-9 py-4 font-semibold text-text-dark shadow-orange outline-none transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[0_0_64px_rgba(255,90,31,0.45)] focus-visible:ring-2 focus-visible:ring-primary-light focus-visible:ring-offset-2 focus-visible:ring-offset-app-bg active:translate-y-0"
+        className="devtalks-guess-btn group relative inline-flex items-center gap-2.5 overflow-hidden rounded-lg px-9 py-4 font-semibold text-text-dark shadow-orange outline-none transition-all duration-300 ease-out hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-primary-light focus-visible:ring-offset-2 focus-visible:ring-offset-app-bg active:translate-y-0"
         style={{
           backgroundImage:
             "linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-primary) 60%, var(--color-primary) 100%)",
@@ -214,7 +234,8 @@ function GuessButton() {
         {/* pulsing outer ring, echoes the mic ring above */}
         <span className="devtalks-btn-ring pointer-events-none absolute inset-0 rounded-lg border border-primary-light" />
 
-        {/* light sheen sweeping across the button on a loop */}
+        {/* light sheen sweeping across the button on a loop — plain white
+            highlight, intentionally not tokenized (no "white" token exists) */}
         <span
           className="devtalks-btn-sheen pointer-events-none absolute inset-y-0 left-0 w-1/3 opacity-60"
           style={{
@@ -245,7 +266,7 @@ function GuessButton() {
   );
 }
 
-function MicIcon({ className }) {
+function MicIcon({ className, style }) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -255,11 +276,12 @@ function MicIcon({ className }) {
       strokeLinecap="round"
       strokeLinejoin="round"
       className={className}
+      style={style}
     >
       <defs>
         <linearGradient id="devtalks-mic-gradient" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#ffb27a" />
-          <stop offset="100%" stopColor="#ff5a1f" />
+          <stop offset="0%" stopColor="var(--color-accent-light)" />
+          <stop offset="100%" stopColor="var(--color-primary)" />
         </linearGradient>
       </defs>
       <path d="M12 15a3.5 3.5 0 0 0 3.5-3.5v-5a3.5 3.5 0 0 0-7 0v5A3.5 3.5 0 0 0 12 15Z" />

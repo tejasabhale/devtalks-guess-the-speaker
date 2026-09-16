@@ -3,14 +3,45 @@ import { motion, useReducedMotion } from "framer-motion";
 
 const easeOutExpo = [0.16, 1, 0.3, 1];
 
-const NODE_RGB = "255, 148, 90"; // primary-light
-const LINK_RGB = "255, 122, 69"; // primary
+/**
+ * Canvas 2D's fillStyle/strokeStyle can't parse `var(--color-x)` — the
+ * canvas API has no idea what a CSS custom property is, so a hardcoded
+ * "255, 148, 90" was the only way the mesh's node/link colors could
+ * work before. To make these actually track the tokens (so a palette
+ * change updates the mesh without touching this file), read the real
+ * computed value of --color-primary-light / --color-primary off the
+ * root element once, convert hex -> "r, g, b", and use that.
+ */
+function hexToRgbTriplet(hex, fallback) {
+  const match = hex.trim().match(/^#([0-9a-f]{6})$/i);
+  if (!match) return fallback;
+  const int = parseInt(match[1], 16);
+  const r = (int >> 16) & 255;
+  const g = (int >> 8) & 255;
+  const b = int & 255;
+  return `${r}, ${g}, ${b}`;
+}
+
+function readColorToken(varName, fallback) {
+  if (typeof window === "undefined") return fallback;
+  const raw = getComputedStyle(document.documentElement)
+    .getPropertyValue(varName)
+    .trim();
+  if (!raw) return fallback;
+  return hexToRgbTriplet(raw, fallback);
+}
 
 function useNetworkMesh(canvasRef, sectionRef, reduceMotion) {
   useEffect(() => {
     const canvas = canvasRef.current;
     const section = sectionRef.current;
     if (!canvas || !section) return;
+
+    // Resolved once per mount from the live --color-primary-light /
+    // --color-primary tokens (with the old hardcoded values kept only
+    // as a fallback if the variables aren't found for some reason).
+    const nodeRgb = readColorToken("--color-primary-light", "255, 148, 90");
+    const linkRgb = readColorToken("--color-primary", "255, 122, 69");
 
     const ctx = canvas.getContext("2d");
     let width = 0;
@@ -72,7 +103,7 @@ function useNetworkMesh(canvasRef, sectionRef, reduceMotion) {
 
           if (dist < linkDistance) {
             const opacity = (1 - dist / linkDistance) * 0.32;
-            ctx.strokeStyle = `rgba(${LINK_RGB}, ${opacity})`;
+            ctx.strokeStyle = `rgba(${linkRgb}, ${opacity})`;
             ctx.lineWidth = 1;
             ctx.beginPath();
             ctx.moveTo(a.x, a.y);
@@ -88,7 +119,7 @@ function useNetworkMesh(canvasRef, sectionRef, reduceMotion) {
 
           if (dist < 150) {
             const opacity = (1 - dist / 150) * 0.45;
-            ctx.strokeStyle = `rgba(${NODE_RGB}, ${opacity})`;
+            ctx.strokeStyle = `rgba(${nodeRgb}, ${opacity})`;
             ctx.lineWidth = 1;
             ctx.beginPath();
             ctx.moveTo(nodes[i].x, nodes[i].y);
@@ -101,7 +132,7 @@ function useNetworkMesh(canvasRef, sectionRef, reduceMotion) {
       for (const node of nodes) {
         ctx.beginPath();
         ctx.arc(node.x, node.y, node.r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${NODE_RGB}, 0.85)`;
+        ctx.fillStyle = `rgba(${nodeRgb}, 0.85)`;
         ctx.fill();
       }
     }
@@ -194,6 +225,7 @@ export default function AboutHero() {
   return (
     <section
       ref={sectionRef}
+      id="about"
       className="relative isolate flex min-h-screen w-full items-center overflow-hidden bg-[var(--color-bg)] px-6 py-24 sm:py-28"
     >
       <div

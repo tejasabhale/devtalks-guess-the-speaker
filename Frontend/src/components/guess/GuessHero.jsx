@@ -1,5 +1,14 @@
 import { useEffect, useRef, useState } from "react";
-import './guessHero.css'
+import "./guessHero.css";
+
+/**
+ * Note: the rgba(244,240,232,...) values that were here map exactly to
+ * --color-text-primary (#f4f0e8), so they're now color-mix() against
+ * that token. guessHero.css wasn't shared with me, so if it has its own
+ * hardcoded hex/rgba (the spotlight/beam/glow colors likely live there),
+ * it'll need the same treatment — happy to do that pass too if you paste
+ * its contents.
+ */
 
 const EVENT_TARGET = new Date(Date.now() + 1000 * 60 * 60 * 26).getTime();
 
@@ -89,6 +98,7 @@ export default function GuessHero() {
   return (
     <section
       ref={sectionRef}
+      id="guess"
       className="relative isolate flex min-h-screen flex-col items-center justify-center overflow-hidden bg-app-bg px-6"
     >
       <div
@@ -101,7 +111,7 @@ export default function GuessHero() {
           className="absolute inset-0 opacity-35"
           style={{
             backgroundImage:
-              "linear-gradient(to right, rgba(244,240,232,0.045) 1px, transparent 1px), linear-gradient(to bottom, rgba(244,240,232,0.045) 1px, transparent 1px)",
+              "linear-gradient(to right, color-mix(in srgb, var(--color-text-primary) 4.5%, transparent) 1px, transparent 1px), linear-gradient(to bottom, color-mix(in srgb, var(--color-text-primary) 4.5%, transparent) 1px, transparent 1px)",
             backgroundSize: "56px 56px",
           }}
         />
@@ -138,7 +148,7 @@ export default function GuessHero() {
         className="pointer-events-none absolute inset-0 z-[1] opacity-[0.025]"
         style={{
           backgroundImage:
-            "radial-gradient(rgba(244,240,232,0.9) 0.6px, transparent 0.6px)",
+            "radial-gradient(color-mix(in srgb, var(--color-text-primary) 90%, transparent) 0.6px, transparent 0.6px)",
           backgroundSize: "5px 5px",
         }}
         aria-hidden="true"
@@ -146,7 +156,13 @@ export default function GuessHero() {
 
       <div className="relative z-10 flex w-full max-w-4xl flex-col items-center text-center">
         <div className="mb-8 inline-flex items-center gap-2.5 rounded-full border border-border-light bg-surface-light px-4 py-1.5 text-sm text-text-secondary backdrop-blur-md">
-          <span className="h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_10px_rgba(255,90,31,0.7)]" />
+          <span
+            className="h-1.5 w-1.5 rounded-full bg-primary"
+            style={{
+              boxShadow:
+                "0 0 10px color-mix(in srgb, var(--color-primary) 70%, transparent)",
+            }}
+          />
           <span>DevKraft presents DevTalks</span>
         </div>
 

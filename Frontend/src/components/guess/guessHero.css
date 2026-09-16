@@ -400,40 +400,6 @@
   transform: rotate(-4deg);
 }
 
-/* ── Floor glow ────────────────────────────────────────────── */
-
-.guess-hero__floor-glow {
-  position: absolute;
-  bottom: -2px;
-  left: 50%;
-
-  width: calc(var(--fig) * 1.7);
-  height: 28px;
-
-  transform: translateX(-50%);
-
-  background: radial-gradient(
-    ellipse at center,
-    rgba(255, 90, 31, 0.25),
-    transparent 70%
-  );
-
-  filter: blur(4px);
-
-  animation: guess-hero-glow-pulse 4s ease-in-out var(--delay) infinite;
-}
-
-@keyframes guess-hero-glow-pulse {
-  0%,
-  100% {
-    opacity: 0.7;
-  }
-
-  50% {
-    opacity: 1;
-  }
-}
-
 /* ── File number ───────────────────────────────────────────── */
 
 .guess-hero__file-number {
@@ -478,14 +444,14 @@
   .guess-hero__spot--left {
     --x: 17%;
     --fig: clamp(68px, 18vw, 86px);
-    --figure-height: 33vh;
+    --figure-height: 43vh;
     --beam-h: 82%;
   }
 
   .guess-hero__spot--right {
     --x: 83%;
     --fig: clamp(68px, 18vw, 86px);
-    --figure-height: 33vh;
+    --figure-height: 43vh;
     --beam-h: 82%;
   }
 
@@ -494,20 +460,72 @@
     height: var(--figure-height);
   }
 
+  /* ── Mobile vertical positioning ───────────────────────── */
+
+  .guess-hero__spot--left .guess-hero__figure,
+  .guess-hero__spot--right .guess-hero__figure {
+    bottom: 265px;
+  }
+
+  .guess-hero__spot--center .guess-hero__figure {
+    bottom: 285px;
+  }
+
+  /* ── Side head → neck connection ───────────────────────── */
+
+  .guess-hero__spot--left .guess-hero__neck,
+  .guess-hero__spot--right .guess-hero__neck {
+    top: 7%;
+    height: 18%;
+  }
+
+  /* ── Side shoulder → chest connection ──────────────────── */
+
+  .guess-hero__spot--left .guess-hero__shoulders,
+  .guess-hero__spot--right .guess-hero__shoulders {
+    top: 14%;
+    height: 24%;
+  }
+
+  .guess-hero__spot--left .guess-hero__figure-body,
+  .guess-hero__spot--right .guess-hero__figure-body {
+    top: 27%;
+    height: 73%;
+  }
+
   /*
-   * Mobile neck adjustment:
-   * wider + shorter to create a more natural
-   * head-to-shoulder transition at small sizes.
+   * Extend the upper torso into the shoulder/chest area.
+   * This removes the visible break between the chest and
+   * lower body on the side silhouettes.
    */
+  .guess-hero__spot--left .guess-hero__figure-body,
+  .guess-hero__spot--right .guess-hero__figure-body {
+    margin-top: -2%;
+  }
+
+  .guess-hero__spot--left .guess-hero__chest,
+  .guess-hero__spot--right .guess-hero__chest {
+    top: 3%;
+    height: 24%;
+  }
+
+  .guess-hero__spot--left .guess-hero__torso-center,
+  .guess-hero__spot--right .guess-hero__torso-center {
+    top: 10%;
+    height: 64%;
+  }
+
+  .guess-hero__spot--left .guess-hero__shoulder-highlight,
+  .guess-hero__spot--right .guess-hero__shoulder-highlight {
+    top: 7%;
+  }
+
   .guess-hero__neck {
-    top: 12.5%;
     width: 20%;
-    height: 14%;
     border-radius: 0 0 24% 24%;
   }
 
   .guess-hero__shoulders {
-    top: 16%;
     height: 21%;
   }
 
@@ -540,7 +558,7 @@
   .guess-hero__spot--left,
   .guess-hero__spot--right {
     --fig: 64px;
-    --figure-height: 31vh;
+    --figure-height: 40vh;
     --beam-h: 98%;
   }
 
@@ -552,14 +570,63 @@
     --x: 85%;
   }
 
+  /* ── Small phone vertical positioning ──────────────────── */
+
+  .guess-hero__spot--left .guess-hero__figure,
+  .guess-hero__spot--right .guess-hero__figure {
+    bottom: 220px;
+  }
+
+  .guess-hero__spot--center .guess-hero__figure {
+    bottom: 240px;
+  }
+
+  /* ── Tighter side neck connection ──────────────────────── */
+
+  .guess-hero__spot--left .guess-hero__neck,
+  .guess-hero__spot--right .guess-hero__neck {
+    top: 6%;
+    height: 17%;
+  }
+
+  /* ── Tighter side chest/body connection ────────────────── */
+
+  .guess-hero__spot--left .guess-hero__shoulders,
+  .guess-hero__spot--right .guess-hero__shoulders {
+    top: 13.5%;
+    height: 23%;
+  }
+
+  .guess-hero__spot--left .guess-hero__figure-body,
+  .guess-hero__spot--right .guess-hero__figure-body {
+    top: 26%;
+    height: 74%;
+    margin-top: -2%;
+  }
+
+  .guess-hero__spot--left .guess-hero__chest,
+  .guess-hero__spot--right .guess-hero__chest {
+    top: 2%;
+    height: 25%;
+  }
+
+  .guess-hero__spot--left .guess-hero__torso-center,
+  .guess-hero__spot--right .guess-hero__torso-center {
+    top: 9%;
+    height: 65%;
+  }
+
+  .guess-hero__spot--left .guess-hero__shoulder-highlight,
+  .guess-hero__spot--right .guess-hero__shoulder-highlight {
+    top: 6%;
+  }
+
   .guess-hero__neck {
-    top: 12%;
     width: 21%;
-    height: 13%;
+    border-radius: 0 0 24% 24%;
   }
 
   .guess-hero__shoulders {
-    top: 15.5%;
     height: 20%;
   }
 
@@ -573,8 +640,7 @@
 @media (prefers-reduced-motion: reduce) {
   .guess-hero__beam,
   .guess-hero__figure,
-  .guess-hero__figure-body,
-  .guess-hero__floor-glow {
+  .guess-hero__figure-body {
     animation: none !important;
   }
 

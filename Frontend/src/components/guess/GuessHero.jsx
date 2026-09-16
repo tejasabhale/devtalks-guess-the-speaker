@@ -144,8 +144,6 @@ export default function GuessHero() {
               <span className="guess-hero__arm guess-hero__arm--right" />
             </div>
 
-            <div className="guess-hero__floor-glow" />
-
             <span className="guess-hero__file-number">0{index + 1}</span>
           </div>
         ))}

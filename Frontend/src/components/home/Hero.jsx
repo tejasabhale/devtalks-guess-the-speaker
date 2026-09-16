@@ -1,20 +1,7 @@
 import { useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
 
 /**
  * DevTalks hero section — DevKraft club
- *
- * Every themed color below is either a Tailwind utility backed by a
- * @theme token (bg-app-bg, text-primary, border-border-orange, ...) or,
- * for opacity-tinted glows/shadows, `color-mix(in srgb, var(--token) X%,
- * transparent)` — so nothing here is a hardcoded hex/rgba that could
- * drift from the design tokens.
- *
- * Two exceptions, left as plain black/white on purpose: the sheen
- * highlight on the CTA and the darkest gradient stop in the backdrop.
- * Neither corresponds to a token in your @theme (there's no "white"
- * token, and no color matches #050505 exactly) — see the comments
- * inline at each spot.
  */
 export default function HeroSection() {
   const heroRef = useRef(null);
@@ -24,12 +11,15 @@ export default function HeroSection() {
   useEffect(() => {
     const hero = heroRef.current;
     const spot = spotRef.current;
+
     if (!hero || !spot) return;
 
     const setSpot = (x, y) => {
       const rect = hero.getBoundingClientRect();
+
       const px = ((x - rect.left) / rect.width) * 100;
       const py = ((y - rect.top) / rect.height) * 100;
+
       spot.style.setProperty("--mx", `${px}%`);
       spot.style.setProperty("--my", `${py}%`);
     };
@@ -46,21 +36,25 @@ export default function HeroSection() {
       }
     };
 
-    // gentle idle drift so the spotlight still feels alive before anyone moves the cursor
     const idleLoop = () => {
       const state = idleRef.current;
+
       if (state.idle) {
         state.t += 0.006;
+
         const x = 50 + Math.sin(state.t) * 18;
         const y = 40 + Math.cos(state.t * 0.8) * 10;
+
         spot.style.setProperty("--mx", `${x}%`);
         spot.style.setProperty("--my", `${y}%`);
       }
+
       state.raf = requestAnimationFrame(idleLoop);
     };
 
     hero.addEventListener("mousemove", handleMouseMove);
     hero.addEventListener("touchmove", handleTouchMove, { passive: true });
+
     idleLoop();
 
     return () => {
@@ -77,13 +71,11 @@ export default function HeroSection() {
       style={{
         backgroundImage: [
           "radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--color-primary) 12%, transparent), transparent 38%)",
-          // No token matches #050505 exactly — mixing app-bg toward black
-          // keeps this tied to the token instead of a bare magic hex.
           "linear-gradient(180deg, var(--color-app-bg) 0%, var(--color-app-bg-primary) 55%, color-mix(in srgb, var(--color-app-bg) 45%, black) 100%)",
         ].join(", "),
       }}
     >
-      {/* faint stage-floor grid, grounds the "stage" concept */}
+      {/* Stage-floor grid */}
       <div
         className="pointer-events-none absolute inset-0 z-0 opacity-50"
         style={{
@@ -97,7 +89,7 @@ export default function HeroSection() {
         }}
       />
 
-      {/* spotlight that tracks the cursor, like a stage light scanning the floor */}
+      {/* Cursor spotlight */}
       <div
         ref={spotRef}
         className="pointer-events-none absolute inset-0 z-10"
@@ -120,6 +112,7 @@ export default function HeroSection() {
         <div className="mb-5 flex items-center justify-center gap-4">
           <div className="devtalks-sway relative flex flex-shrink-0 origin-top items-center justify-center">
             <span className="devtalks-ring-pulse absolute -inset-3.5 rounded-full border border-border-orange" />
+
             <MicIcon
               className="h-10 w-10 sm:h-14 sm:w-14"
               style={{
@@ -157,55 +150,97 @@ export default function HeroSection() {
           70%  { box-shadow: 0 0 0 10px transparent; }
           100% { box-shadow: 0 0 0 0 transparent; }
         }
-        .devtalks-pulse-dot { animation: devtalks-pulse-dot 1.8s ease-out infinite; }
+
+        .devtalks-pulse-dot {
+          animation: devtalks-pulse-dot 1.8s ease-out infinite;
+        }
 
         @keyframes devtalks-sway {
           0%, 100% { transform: rotate(-4deg); }
           50%      { transform: rotate(4deg); }
         }
-        .devtalks-sway { animation: devtalks-sway 4.2s ease-in-out infinite; }
+
+        .devtalks-sway {
+          animation: devtalks-sway 4.2s ease-in-out infinite;
+        }
 
         @keyframes devtalks-ring-pulse {
           0%   { transform: scale(0.7); opacity: 0.9; }
           100% { transform: scale(1.5); opacity: 0; }
         }
-        .devtalks-ring-pulse { animation: devtalks-ring-pulse 2.6s ease-out infinite; }
+
+        .devtalks-ring-pulse {
+          animation: devtalks-ring-pulse 2.6s ease-out infinite;
+        }
 
         @keyframes devtalks-drift {
           0%, 100% { transform: translate(0, 0) rotate(0deg); }
           50%      { transform: translate(18px, -26px) rotate(8deg); }
         }
+
         @keyframes devtalks-drift-slow {
           0%, 100% { transform: translate(0, 0) rotate(0deg); }
           50%      { transform: translate(-22px, 20px) rotate(-6deg); }
         }
-        .devtalks-f1 { animation: devtalks-drift 9s cubic-bezier(0.16,1,0.3,1) infinite; }
-        .devtalks-f2 { animation: devtalks-drift-slow 11s cubic-bezier(0.16,1,0.3,1) infinite; }
-        .devtalks-f3 { animation: devtalks-drift-slow 8s cubic-bezier(0.16,1,0.3,1) infinite; }
-        .devtalks-f4 { animation: devtalks-drift 10s cubic-bezier(0.16,1,0.3,1) infinite; }
-        .devtalks-f5 { animation: devtalks-drift 13s cubic-bezier(0.16,1,0.3,1) infinite; }
-        .devtalks-f6 { animation: devtalks-drift-slow 12s cubic-bezier(0.16,1,0.3,1) infinite; }
+
+        .devtalks-f1 {
+          animation: devtalks-drift 9s cubic-bezier(0.16,1,0.3,1) infinite;
+        }
+
+        .devtalks-f2 {
+          animation: devtalks-drift-slow 11s cubic-bezier(0.16,1,0.3,1) infinite;
+        }
+
+        .devtalks-f3 {
+          animation: devtalks-drift-slow 8s cubic-bezier(0.16,1,0.3,1) infinite;
+        }
+
+        .devtalks-f4 {
+          animation: devtalks-drift 10s cubic-bezier(0.16,1,0.3,1) infinite;
+        }
+
+        .devtalks-f5 {
+          animation: devtalks-drift 13s cubic-bezier(0.16,1,0.3,1) infinite;
+        }
+
+        .devtalks-f6 {
+          animation: devtalks-drift-slow 12s cubic-bezier(0.16,1,0.3,1) infinite;
+        }
 
         @keyframes devtalks-btn-sheen {
           0%   { transform: translateX(-130%) skewX(-18deg); }
           100% { transform: translateX(230%) skewX(-18deg); }
         }
-        .devtalks-btn-sheen { animation: devtalks-btn-sheen 3.2s ease-in-out infinite; }
+
+        .devtalks-btn-sheen {
+          animation: devtalks-btn-sheen 3.2s ease-in-out infinite;
+        }
 
         @keyframes devtalks-btn-ring {
           0%   { transform: scale(0.92); opacity: 0.55; }
           100% { transform: scale(1.35); opacity: 0; }
         }
-        .devtalks-btn-ring { animation: devtalks-btn-ring 2.2s cubic-bezier(0.16,1,0.3,1) infinite; }
+
+        .devtalks-btn-ring {
+          animation: devtalks-btn-ring 2.2s cubic-bezier(0.16,1,0.3,1) infinite;
+        }
 
         .devtalks-guess-btn:hover {
           box-shadow: 0 0 64px color-mix(in srgb, var(--color-primary) 45%, transparent);
         }
 
         @media (prefers-reduced-motion: reduce) {
-          .devtalks-pulse-dot, .devtalks-sway, .devtalks-ring-pulse,
-          .devtalks-f1, .devtalks-f2, .devtalks-f3, .devtalks-f4, .devtalks-f5, .devtalks-f6,
-          .devtalks-btn-sheen, .devtalks-btn-ring {
+          .devtalks-pulse-dot,
+          .devtalks-sway,
+          .devtalks-ring-pulse,
+          .devtalks-f1,
+          .devtalks-f2,
+          .devtalks-f3,
+          .devtalks-f4,
+          .devtalks-f5,
+          .devtalks-f6,
+          .devtalks-btn-sheen,
+          .devtalks-btn-ring {
             animation-duration: 0.01ms !important;
             animation-iteration-count: 1 !important;
           }
@@ -216,26 +251,42 @@ export default function HeroSection() {
 }
 
 /**
- * Primary CTA — a layered, "stage light" button rather than a flat pill:
- * pulsing outer ring, gradient fill, a light sheen that sweeps across on
- * a loop, and a live-status microcopy line underneath for social proof.
+ * Primary CTA
  */
 function GuessButton() {
+  const handleClick = (event) => {
+    event.preventDefault();
+
+    const target = document.getElementById("guess");
+
+    if (!target) return;
+
+    target.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+
+    /*
+     * Keep the URL/hash in sync without relying on router navigation.
+     * replaceState avoids adding a new browser-history entry every time
+     * the user clicks the button.
+     */
+    window.history.replaceState(null, "", "#guess");
+  };
+
   return (
     <div className="flex flex-col items-center gap-3">
-      <Link
-        to="/#guess"
+      <a
+        href="#guess"
+        onClick={handleClick}
         className="devtalks-guess-btn group relative inline-flex items-center gap-2.5 overflow-hidden rounded-lg px-9 py-4 font-semibold text-text-dark shadow-orange outline-none transition-all duration-300 ease-out hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-primary-light focus-visible:ring-offset-2 focus-visible:ring-offset-app-bg active:translate-y-0"
         style={{
           backgroundImage:
             "linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-primary) 60%, var(--color-primary) 100%)",
         }}
       >
-        {/* pulsing outer ring, echoes the mic ring above */}
         <span className="devtalks-btn-ring pointer-events-none absolute inset-0 rounded-lg border border-primary-light" />
 
-        {/* light sheen sweeping across the button on a loop — plain white
-            highlight, intentionally not tokenized (no "white" token exists) */}
         <span
           className="devtalks-btn-sheen pointer-events-none absolute inset-y-0 left-0 w-1/3 opacity-60"
           style={{
@@ -245,6 +296,7 @@ function GuessButton() {
         />
 
         <span className="relative">Guess the speaker</span>
+
         <svg
           viewBox="0 0 24 24"
           fill="none"
@@ -256,7 +308,7 @@ function GuessButton() {
         >
           <path d="M9 5l7 7-7 7" />
         </svg>
-      </Link>
+      </a>
 
       <p className="inline-flex items-center gap-1.5 text-xs text-text-muted">
         <span className="devtalks-pulse-dot h-1.5 w-1.5 rounded-full bg-primary" />
@@ -284,6 +336,7 @@ function MicIcon({ className, style }) {
           <stop offset="100%" stopColor="var(--color-primary)" />
         </linearGradient>
       </defs>
+
       <path d="M12 15a3.5 3.5 0 0 0 3.5-3.5v-5a3.5 3.5 0 0 0-7 0v5A3.5 3.5 0 0 0 12 15Z" />
       <path d="M19 11.5a7 7 0 0 1-14 0" />
       <path d="M12 18.5V22" />
@@ -294,6 +347,7 @@ function MicIcon({ className, style }) {
 
 function FloatingIcons() {
   const strokeClass = "stroke-accent-light fill-none opacity-[0.16]";
+
   return (
     <div className="pointer-events-none absolute inset-0 z-10 overflow-hidden">
       <svg
@@ -306,6 +360,7 @@ function FloatingIcons() {
         <path d="M12 18v3" />
         <path d="M9 21h6" />
       </svg>
+
       <svg
         className={`devtalks-f2 absolute left-[16%] top-[68%] w-[34px] ${strokeClass}`}
         viewBox="0 0 24 24"
@@ -313,6 +368,7 @@ function FloatingIcons() {
       >
         <path d="M21 12a8 8 0 1 1-3.6-6.67L21 4l-1.2 3.9A7.96 7.96 0 0 1 21 12Z" />
       </svg>
+
       <svg
         className={`devtalks-f3 absolute right-[12%] top-[22%] w-[40px] ${strokeClass}`}
         viewBox="0 0 24 24"
@@ -323,6 +379,7 @@ function FloatingIcons() {
         <path d="M8 3v4" />
         <path d="M16 3v4" />
       </svg>
+
       <svg
         className={`devtalks-f4 absolute right-[18%] top-[72%] w-[30px] ${strokeClass}`}
         viewBox="0 0 24 24"
@@ -332,6 +389,7 @@ function FloatingIcons() {
         <rect x="2" y="14" width="5" height="7" rx="1.5" />
         <rect x="17" y="14" width="5" height="7" rx="1.5" />
       </svg>
+
       <svg
         className={`devtalks-f5 absolute left-[5%] top-[46%] w-[26px] ${strokeClass}`}
         viewBox="0 0 24 24"
@@ -343,6 +401,7 @@ function FloatingIcons() {
         <path d="M18 12h3" />
         <circle cx="12" cy="12" r="4" />
       </svg>
+
       <svg
         className={`devtalks-f6 absolute right-[6%] top-[40%] w-[24px] ${strokeClass}`}
         viewBox="0 0 24 24"

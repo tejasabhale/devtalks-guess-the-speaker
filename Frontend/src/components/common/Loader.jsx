@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 
-import { useWordmarkFont } from "../../hooks/useWordmarkFont";
-
 const EASE = [0.16, 1, 0.3, 1];
 
 const LOADING_PHRASES = [
@@ -28,21 +26,17 @@ const WORDMARK_STYLE = {
   fontFamily: "'Sora', sans-serif",
   fontWeight: 800,
   letterSpacing: "-0.045em",
+  fontSynthesis: "none",
 };
 
 /**
  * Full-screen "reveal" loader for DevTalks — Guess the Speaker.
- *
- * A spotlight sweeps across a dark stage, a glitching "?" represents
- * the mystery guest, then resolves into the DevTalks wordmark.
  */
 export default function Loader({ onComplete, duration = DEFAULT_DURATION }) {
   const [stage, setStage] = useState("scan");
   const [phraseIndex, setPhraseIndex] = useState(0);
 
   const prefersReducedMotion = useReducedMotion();
-
-  useWordmarkFont();
 
   /*
    * Fixed loader choreography.
@@ -54,11 +48,17 @@ export default function Loader({ onComplete, duration = DEFAULT_DURATION }) {
       return undefined;
     }
 
-    const glitchTimer = setTimeout(() => setStage("glitch"), GLITCH_AT);
+    const glitchTimer = setTimeout(() => {
+      setStage("glitch");
+    }, GLITCH_AT);
 
-    const revealTimer = setTimeout(() => setStage("reveal"), REVEAL_AT);
+    const revealTimer = setTimeout(() => {
+      setStage("reveal");
+    }, REVEAL_AT);
 
-    const completeTimer = setTimeout(() => onComplete?.(), duration);
+    const completeTimer = setTimeout(() => {
+      onComplete?.();
+    }, duration);
 
     return () => {
       clearTimeout(glitchTimer);
@@ -117,7 +117,6 @@ export default function Loader({ onComplete, duration = DEFAULT_DURATION }) {
               }}
               className="relative flex flex-col items-center"
             >
-              {/* DevTalks wordmark */}
               <span
                 style={WORDMARK_STYLE}
                 className="select-none text-5xl text-[var(--color-text-primary)] sm:text-6xl"
@@ -126,7 +125,6 @@ export default function Loader({ onComplete, duration = DEFAULT_DURATION }) {
                 <span className="text-[var(--color-primary)]">Talks</span>
               </span>
 
-              {/* Brand glow */}
               <div className="pointer-events-none absolute inset-0 -z-10 bg-[var(--color-primary)]/25 opacity-70 blur-3xl" />
 
               <motion.p
@@ -214,9 +212,6 @@ export default function Loader({ onComplete, duration = DEFAULT_DURATION }) {
 
 /**
  * Mystery guest placeholder.
- *
- * Uses the same Sora 800 styling as the DevTalks wordmark so
- * the transition from "?" to "DevTalks" feels visually connected.
  */
 function GlitchMark({ stage, reducedMotion }) {
   const glitching = stage === "glitch" && !reducedMotion;
@@ -242,7 +237,6 @@ function GlitchMark({ stage, reducedMotion }) {
       }}
       className="relative select-none text-8xl sm:text-9xl"
     >
-      {/* Main question mark */}
       <span
         style={WORDMARK_STYLE}
         className="relative z-10 text-[var(--color-text-primary)]"
@@ -252,7 +246,6 @@ function GlitchMark({ stage, reducedMotion }) {
 
       {!reducedMotion && (
         <>
-          {/* Orange glitch layer */}
           <motion.span
             aria-hidden="true"
             style={WORDMARK_STYLE}
@@ -276,7 +269,6 @@ function GlitchMark({ stage, reducedMotion }) {
             ?
           </motion.span>
 
-          {/* Light-orange glitch layer */}
           <motion.span
             aria-hidden="true"
             style={WORDMARK_STYLE}
@@ -303,7 +295,6 @@ function GlitchMark({ stage, reducedMotion }) {
         </>
       )}
 
-      {/* Ring pulse */}
       <span className="absolute left-1/2 top-1/2 -z-10 h-40 w-40 -translate-x-1/2 -translate-y-1/2 rounded-full border border-[var(--color-border-orange)] opacity-40" />
     </motion.div>
   );
@@ -315,7 +306,6 @@ function GlitchMark({ stage, reducedMotion }) {
 function StageBackdrop({ reducedMotion }) {
   return (
     <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
-      {/* Stage-floor grid */}
       <div
         className="absolute inset-0 opacity-40"
         style={{
@@ -329,7 +319,6 @@ function StageBackdrop({ reducedMotion }) {
         }}
       />
 
-      {/* Sweeping spotlight beam */}
       {!reducedMotion && (
         <motion.div
           animate={{
@@ -349,7 +338,6 @@ function StageBackdrop({ reducedMotion }) {
         />
       )}
 
-      {/* Breathing ambient glow */}
       <motion.div
         animate={
           reducedMotion

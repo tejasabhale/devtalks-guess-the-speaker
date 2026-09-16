@@ -268,7 +268,7 @@ export default function AboutCTA() {
           className="mt-10 grid gap-3 sm:mt-12 sm:grid-cols-3"
         >
           <motion.a
-            href="https://your-devtalks-website.com"
+            href="#"
             target="_blank"
             rel="noopener noreferrer"
             whileHover={reduceMotion ? {} : { y: -4 }}
@@ -297,7 +297,7 @@ export default function AboutCTA() {
           </motion.a>
 
           <motion.a
-            href="https://your-devkraft-website.com"
+            href="#"
             target="_blank"
             rel="noopener noreferrer"
             whileHover={reduceMotion ? {} : { y: -4 }}
@@ -331,7 +331,7 @@ export default function AboutCTA() {
             className="group"
           >
             <Link
-              to="/guess"
+              to="/#guess"
               className="block h-full rounded-2xl border border-[var(--color-border)] bg-[#090909] px-5 py-6 text-left transition-all duration-300 hover:border-[var(--color-border-orange)] hover:bg-[#0d0d0d] sm:px-6"
             >
               <div className="flex items-center justify-between">

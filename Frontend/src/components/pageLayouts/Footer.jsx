@@ -30,7 +30,7 @@ function useWordmarkFont() {
 const SOCIAL_LINKS = [
   {
     name: "Instagram",
-    href: "https://instagram.com/devtalks",
+    href: "https://www.instagram.com/devkraft.dpu",
     icon: (
       <svg
         viewBox="0 0 24 24"
@@ -60,7 +60,7 @@ const SOCIAL_LINKS = [
   },
   {
     name: "X",
-    href: "https://x.com/devtalks",
+    href: "https://x.com/devkraftclub",
     icon: (
       <svg
         viewBox="0 0 24 24"
@@ -77,7 +77,7 @@ const SOCIAL_LINKS = [
   },
   {
     name: "LinkedIn",
-    href: "https://linkedin.com/company/devtalks",
+    href: "https://www.linkedin.com/company/dev-kraft",
     icon: (
       <svg
         viewBox="0 0 24 24"

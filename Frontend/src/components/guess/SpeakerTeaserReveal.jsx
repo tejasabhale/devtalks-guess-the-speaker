@@ -25,63 +25,25 @@ if (typeof window !== "undefined") {
 /**
  * DevTalks — Mystery Speaker Reveal
  *
- * Same file, same animation system as SpeakerReveal
- * (puzzle-tile portrait assembly, GSAP word-pop split text,
- * segmented autoplay rail, tilt highlight cards) — repointed at
- * a "guess who's speaking" teaser instead of a finished bio reveal.
+ * React + Tailwind + Framer Motion + GSAP + lucide-react
  *
- * WHAT CHANGED FROM SpeakerReveal, AND WHY:
+ * Visual direction:
+ * - Pure black cinematic background
+ * - Large floating ambient circles
+ * - Subtle orange atmospheric glow
+ * - Floating micro particles
+ * - Puzzle-tile mystery portrait
+ * - GSAP word-pop split text
+ * - Segmented autoplay rail
+ * - Tilt clue cards
  *
- * - Identity is withheld, not shown. `PuzzlePortrait` still assembles
- *   itself from scattered tiles exactly as before, but the source
- *   image is desaturated (grayscale + darkened via CSS filter, no
- *   pixel editing needed) and a `MysteryMark` layer sits on top: a
- *   soft dark scrim plus a large "?" that pops in with the same
- *   `springSnappy` spring once the tiles finish assembling. The name
- *   heading is replaced by a redacted codename ("SPEAKER 01") so nothing
- *   in the DOM gives the identity away either.
+ * Lenis is handled globally in App.jsx.
  *
- * - Bio copy became clue copy. `roleLines` (their actual job title)
- *   is now `clues`: 2–4 short hint strings you write, each rendered
- *   with a numbered "CLUE 0N" tag using the same SplitReveal pop-in.
- *   The pull-quote is now a teaser line written to intrigue without
- *   naming anything. The keyword cascade lost the one item that
- *   used to spell out the speaker's real name — it's pure topic/vibe
- *   words now, safe to show pre-reveal.
- *
- * - Highlight cards became a clue-status rail: instead of three bio
- *   facts, each card is one clue slot showing whether it's live yet
- *   ("Unlocked" vs "Locked"), so the rail visually fills in as you
- *   edit `unlocked: true` on more clues week to week. Locked cards
- *   render with reduced opacity and a Lock icon instead of their topic
- *   icon — no animation changes, same tilt/glow interaction, just a
- *   conditional on what's inside.
- *
- * - Added a countdown strip under the header (`daysUntilEvent`,
- *   `eventDateLabel`) since "clues update as the event nears" implied
- *   people should be able to tell how close it is. It's a single
- *   static line, not wired to a live clock — update the two props
- *   when you know the real date, or replace with your own timer.
- *
- * - Everything structural is untouched: full `100dvh` layout, the
- *   `min-h-[100dvh]` mobile fallback with page scroll, the segmented
- *   autoplay rail, the infinite carousel wrap, the same spring
- *   presets, and the same GSAP SplitReveal mechanism.
- *
- * HOW TO UPDATE CLUES AS THE EVENT APPROACHES:
- *   Edit the `MYSTERY_SPEAKERS` array below. For each speaker:
- *     - flip a clue's `unlocked` to `true` when you want it live
- *     - add a new clue object to `clues` any time
- *     - swap `revealStatus` from "3 clues live" style copy as you go
- *   Nothing else in the component needs to change — the clue rail,
- *   the numbered clue list, and the "X/Y unlocked" tagline all derive
- *   from the array, so editing data is editing the page.
- *
- * Photos: still pointed at pravatar.cc placeholders purely so the
- * puzzle-reveal has pixels to scatter and reassemble — swap `image`
- * for a real (still-anonymized) photo whenever you like, the
- * grayscale + question-mark treatment is applied in CSS regardless
- * of what the source image actually shows.
+ * Identity is intentionally withheld:
+ * - Codename instead of real name
+ * - Darkened / desaturated portrait
+ * - Large question mark overlay
+ * - Progressive clue reveal
  */
 
 const MYSTERY_SPEAKERS = [
@@ -255,8 +217,6 @@ const MYSTERY_SPEAKERS = [
   },
 ];
 
-// Same shared spring presets as SpeakerReveal, kept identical so this
-// component feels like the same physical material.
 const springSoft = {
   type: "spring",
   stiffness: 170,
@@ -291,8 +251,6 @@ function FontStyles() {
   );
 }
 
-/** Identical mechanism to SpeakerReveal's SplitReveal — word-by-word
- *  GSAP pop-in, mount- or scroll-triggered. */
 function SplitReveal({
   text,
   as: Tag = "span",
@@ -378,7 +336,7 @@ function SplitReveal({
   return <Tag ref={ref} className={className} />;
 }
 
-export default function SpeakerTeaserReveal({
+export default function MysterySpeakerReveal({
   autoplayMs = 7000,
   eventDateLabel = "March 14",
   daysUntilEvent = 21,
@@ -439,10 +397,15 @@ export default function SpeakerTeaserReveal({
 
     if (!current) return;
 
-    gsap.set(current, { scaleX: 0 });
+    gsap.set(current, {
+      scaleX: 0,
+    });
 
     if (reduceMotion) {
-      gsap.set(current, { scaleX: 1 });
+      gsap.set(current, {
+        scaleX: 1,
+      });
+
       return;
     }
 
@@ -458,16 +421,17 @@ export default function SpeakerTeaserReveal({
   }, [index, autoplayMs]);
 
   return (
-    <section className="font-body relative flex min-h-[100dvh] w-full flex-col overflow-y-auto bg-app-bg px-5 py-8 sm:px-10 sm:py-6 lg:h-[100dvh] lg:overflow-hidden lg:px-16 lg:py-6 xl:px-24 2xl:px-32">
+    <section className="font-body relative flex min-h-[100dvh] w-full flex-col overflow-y-auto bg-black px-5 py-8 sm:px-10 sm:py-6 lg:h-[100dvh] lg:overflow-hidden lg:px-16 lg:py-6 xl:px-24 2xl:px-32">
       <FontStyles />
       <SectionBackdrop />
 
       <div className="relative z-10 mx-auto flex h-full w-full flex-col justify-between">
-        {/* header row */}
+        {/* Header */}
         <div className="mb-3 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
             <span className="relative flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary-light opacity-60" />
+
               <span className="relative inline-flex h-2 w-2 rounded-full bg-primary-light" />
             </span>
 
@@ -477,7 +441,7 @@ export default function SpeakerTeaserReveal({
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="hidden items-center gap-1.5 rounded-full border border-border px-3 py-1 text-[11px] text-text-secondary sm:flex">
+            <div className="hidden items-center gap-1.5 rounded-full border border-border bg-black/30 px-3 py-1 text-[11px] text-text-secondary backdrop-blur-sm sm:flex">
               <Calendar size={12} strokeWidth={2} />
 
               <span>
@@ -490,10 +454,15 @@ export default function SpeakerTeaserReveal({
                 type="button"
                 aria-label="Previous mystery speaker"
                 onClick={() => goTo(index - 1)}
-                whileHover={{ scale: 1.08, rotate: -4 }}
-                whileTap={{ scale: 0.9 }}
+                whileHover={{
+                  scale: 1.08,
+                  rotate: -4,
+                }}
+                whileTap={{
+                  scale: 0.9,
+                }}
                 transition={springSnappy}
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-border text-text-secondary transition-colors duration-200 hover:border-border-orange hover:text-primary-light"
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-black/30 text-text-secondary backdrop-blur-sm transition-colors duration-200 hover:border-border-orange hover:text-primary-light"
               >
                 <ChevronLeft size={17} strokeWidth={2.5} />
               </motion.button>
@@ -502,8 +471,13 @@ export default function SpeakerTeaserReveal({
                 type="button"
                 aria-label="Next mystery speaker"
                 onClick={() => goTo(index + 1)}
-                whileHover={{ scale: 1.08, rotate: 4 }}
-                whileTap={{ scale: 0.9 }}
+                whileHover={{
+                  scale: 1.08,
+                  rotate: 4,
+                }}
+                whileTap={{
+                  scale: 0.9,
+                }}
                 transition={springSnappy}
                 className="flex h-9 w-9 items-center justify-center rounded-full border border-border-orange bg-surface-orange text-primary-light transition-colors duration-200 hover:bg-primary hover:text-text-dark"
               >
@@ -513,7 +487,7 @@ export default function SpeakerTeaserReveal({
           </div>
         </div>
 
-        {/* segmented autoplay rail */}
+        {/* Segmented autoplay rail */}
         <div
           className="mb-4 flex w-full gap-1.5 sm:mb-6"
           role="tablist"
@@ -527,39 +501,54 @@ export default function SpeakerTeaserReveal({
               aria-selected={i === index}
               aria-label={`Go to ${s.codename}`}
               onClick={() => goTo(i)}
-              className="relative h-px flex-1 overflow-hidden rounded-full bg-border"
+              className="relative h-px flex-1 overflow-hidden rounded-full bg-white/10"
             >
               <span
                 ref={(el) => {
                   segmentRefs.current[i] = el;
                 }}
-                className="absolute inset-y-0 left-0 w-full origin-left rounded-full bg-primary"
+                className="absolute inset-y-0 left-0 w-full origin-left rounded-full bg-primary shadow-[0_0_10px_rgba(255,90,31,0.5)]"
               />
             </button>
           ))}
         </div>
 
-        {/* mystery speaker detail */}
+        {/* Mystery speaker detail */}
         <div className="flex flex-1 flex-col justify-center overflow-hidden">
           <AnimatePresence mode="wait">
             <motion.div
               key={speaker.id}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -12 }}
+              initial={{
+                opacity: 0,
+                y: 12,
+              }}
+              animate={{
+                opacity: 1,
+                y: 0,
+              }}
+              exit={{
+                opacity: 0,
+                y: -12,
+              }}
               transition={springSoft}
               className="grid grid-cols-1 items-center gap-5 sm:gap-8 lg:grid-cols-[1fr_auto_1fr] lg:gap-10 xl:gap-14"
             >
-              {/* left: codename + clue list */}
+              {/* Left: codename + clues */}
               <div className="order-2 flex flex-col items-center text-center lg:order-1 lg:items-end lg:text-right">
                 <motion.span
-                  initial={{ opacity: 0, y: -8 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  initial={{
+                    opacity: 0,
+                    y: -8,
+                  }}
+                  animate={{
+                    opacity: 1,
+                    y: 0,
+                  }}
                   transition={{
                     ...springSnappy,
                     delay: 0.05,
                   }}
-                  className="inline-flex items-center rounded-full bg-surface-orange px-2.5 py-0.5 text-[11px] font-medium text-primary-light"
+                  className="inline-flex items-center rounded-full border border-primary/15 bg-primary/[0.045] px-2.5 py-0.5 text-[11px] font-medium text-primary-light backdrop-blur-sm"
                 >
                   {speaker.track}
                 </motion.span>
@@ -604,7 +593,7 @@ export default function SpeakerTeaserReveal({
                     ...springSnappy,
                     delay: 0.32,
                   }}
-                  className="mt-2 inline-flex items-center rounded-full bg-primary px-2.5 py-0.5 text-[11px] font-semibold text-text-dark"
+                  className="mt-2 inline-flex items-center rounded-full bg-primary px-2.5 py-0.5 text-[11px] font-semibold text-black"
                 >
                   {speaker.revealStatus}
                 </motion.span>
@@ -639,10 +628,12 @@ export default function SpeakerTeaserReveal({
                 </div>
               </div>
 
-              {/* center: mystery portrait */}
+              {/* Center: mystery portrait */}
               <div className="order-1 flex justify-center lg:order-2">
                 <motion.div
-                  animate={{ y: [0, -6, 0] }}
+                  animate={{
+                    y: [0, -7, 0],
+                  }}
                   transition={{
                     duration: 5,
                     repeat: Infinity,
@@ -658,7 +649,7 @@ export default function SpeakerTeaserReveal({
                 </motion.div>
               </div>
 
-              {/* right: teaser + keyword cascade */}
+              {/* Right: teaser + keywords */}
               <div className="order-3 flex flex-col items-center text-center lg:items-start lg:text-left">
                 <p className="max-w-sm text-base font-semibold leading-snug text-text-primary sm:text-lg xl:max-w-md xl:text-xl">
                   <SplitReveal
@@ -679,8 +670,12 @@ export default function SpeakerTeaserReveal({
                 </p>
 
                 <motion.span
-                  initial={{ scaleX: 0 }}
-                  animate={{ scaleX: 1 }}
+                  initial={{
+                    scaleX: 0,
+                  }}
+                  animate={{
+                    scaleX: 1,
+                  }}
                   transition={{
                     ...springSoft,
                     delay: 0.58,
@@ -688,7 +683,7 @@ export default function SpeakerTeaserReveal({
                   style={{
                     transformOrigin: "left",
                   }}
-                  className="mt-1.5 h-0.5 w-8 bg-primary"
+                  className="mt-1.5 h-0.5 w-8 bg-primary shadow-[0_0_10px_rgba(255,90,31,0.45)]"
                 />
 
                 <div className="font-display mt-2.5 flex max-w-xs flex-wrap items-baseline justify-center gap-x-2.5 gap-y-0.5 lg:justify-start">
@@ -720,7 +715,7 @@ export default function SpeakerTeaserReveal({
           </AnimatePresence>
         </div>
 
-        {/* clue-status rail */}
+        {/* Clue status rail */}
         <div
           ref={cardsRef}
           className="mt-4 grid grid-cols-1 gap-3 sm:mt-6 sm:grid-cols-3 xl:gap-4"
@@ -744,8 +739,6 @@ export default function SpeakerTeaserReveal({
   );
 }
 
-/** Same tilt + glow card as SpeakerReveal's HighlightCard, but the
- *  content and icon depend on whether this clue slot is unlocked yet. */
 function ClueCard({ clue, defaultIcon: Icon = Sparkles, index, inView }) {
   const cardRef = useRef(null);
 
@@ -818,15 +811,16 @@ function ClueCard({ clue, defaultIcon: Icon = Sparkles, index, inView }) {
       }}
       className={`group relative overflow-hidden rounded-xl border px-4 py-3.5 transition-colors duration-300 ${
         clue.unlocked
-          ? "border-border bg-surface hover:border-border-orange"
-          : "border-border/60 bg-surface/60"
+          ? "border-white/10 bg-white/[0.025] backdrop-blur-sm hover:border-primary/30 hover:bg-white/[0.04]"
+          : "border-white/[0.06] bg-white/[0.015]"
       }`}
     >
+      {/* Pointer-following glow */}
       <motion.div
         aria-hidden
         className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
         style={{
-          background: `radial-gradient(160px circle at ${glowX} ${glowY}, color-mix(in srgb, var(--color-primary) 16%, transparent), transparent 70%)`,
+          background: `radial-gradient(160px circle at ${glowX} ${glowY}, color-mix(in srgb, var(--color-primary) 14%, transparent), transparent 70%)`,
         }}
       />
 
@@ -837,7 +831,7 @@ function ClueCard({ clue, defaultIcon: Icon = Sparkles, index, inView }) {
       />
 
       <div className="relative flex items-center gap-2">
-        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-surface-orange text-primary-light">
+        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary-light">
           <ShownIcon size={13} strokeWidth={2} />
         </div>
 
@@ -853,11 +847,6 @@ function ClueCard({ clue, defaultIcon: Icon = Sparkles, index, inView }) {
   );
 }
 
-/** Same puzzle-tile assembly as SpeakerReveal's PuzzlePortrait, with
- *  two additions: tiles render desaturated/darkened via CSS filter
- *  (no image editing needed), and a MysteryMark ("?" badge) fades in
- *  on top once the tiles finish settling, so the face never actually
- *  reads even though a real photo can sit underneath. */
 function PuzzlePortrait({ src, name, size = 190, cols = 6 }) {
   const fallbackTones = [
     "var(--color-primary)",
@@ -975,10 +964,10 @@ function PuzzlePortrait({ src, name, size = 190, cols = 6 }) {
   return (
     <div
       ref={containerRef}
-      className="relative h-[140px] w-[140px] shrink-0 overflow-hidden rounded-full border border-border-orange bg-app-bg-secondary sm:h-[210px] sm:w-[210px] lg:h-[280px] lg:w-[280px] xl:h-[320px] xl:w-[320px]"
+      className="relative h-[140px] w-[140px] shrink-0 overflow-hidden rounded-full border border-primary/30 bg-black sm:h-[210px] sm:w-[210px] lg:h-[280px] lg:w-[280px] xl:h-[320px] xl:w-[320px]"
       style={{
         boxShadow:
-          "0 16px 48px color-mix(in srgb, var(--color-primary) 20%, transparent)",
+          "0 0 70px color-mix(in srgb, var(--color-primary) 14%, transparent)",
       }}
     >
       {tiles.map((tile) => (
@@ -990,19 +979,19 @@ function PuzzlePortrait({ src, name, size = 190, cols = 6 }) {
             top: `${tile.top}%`,
             width: `${100 / cols}%`,
             height: `${100 / cols}%`,
-            backgroundColor: `color-mix(in srgb, ${tile.fallback} 55%, var(--color-app-bg-secondary))`,
+            backgroundColor: `color-mix(in srgb, ${tile.fallback} 55%, #050505)`,
             backgroundImage: `url(${src})`,
             backgroundSize: `${cols * 100}% ${cols * 100}%`,
             backgroundPosition: `${tile.bgPosX}% ${tile.bgPosY}%`,
-            filter: "grayscale(1) brightness(0.55) contrast(1.05)",
+            filter: "grayscale(1) brightness(0.5) contrast(1.05)",
           }}
         />
       ))}
 
-      {/* dark scrim */}
-      <div className="pointer-events-none absolute inset-0 rounded-full bg-app-bg-secondary/35" />
+      {/* Dark scrim */}
+      <div className="pointer-events-none absolute inset-0 rounded-full bg-black/25" />
 
-      {/* question mark */}
+      {/* Mystery mark */}
       <div
         ref={markRef}
         className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-0"
@@ -1019,7 +1008,7 @@ function PuzzlePortrait({ src, name, size = 190, cols = 6 }) {
         </span>
       </div>
 
-      <div className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-inset ring-border-orange/60" />
+      <div className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-inset ring-primary/30" />
     </div>
   );
 }
@@ -1049,27 +1038,163 @@ function mulberry32(seed) {
   };
 }
 
+/**
+ * Same cinematic background language as SpeakerReveal:
+ * pure black base + large floating circles + orange atmosphere
+ * + subtle distant particles + central focus + vignette.
+ */
 function SectionBackdrop() {
   return (
-    <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
-      <div
-        className="absolute inset-0 opacity-30"
-        style={{
-          backgroundImage:
-            "linear-gradient(var(--color-border-light) 1px, transparent 1px), linear-gradient(90deg, var(--color-border-light) 1px, transparent 1px)",
-          backgroundSize: "64px 64px",
-          maskImage:
-            "radial-gradient(ellipse 80% 60% at 50% 20%, black 0%, transparent 70%)",
-          WebkitMaskImage:
-            "radial-gradient(ellipse 80% 60% at 50% 20%, black 0%, transparent 70%)",
+    <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden bg-black">
+      {/* Large left ambient orb */}
+      <motion.div
+        aria-hidden="true"
+        className="absolute -left-32 top-[-10%] h-[420px] w-[420px] rounded-full bg-primary/[0.055] blur-[110px] sm:h-[520px] sm:w-[520px]"
+        animate={{
+          x: [0, 45, 10, 0],
+          y: [0, 25, 55, 0],
+          scale: [1, 1.08, 0.96, 1],
+        }}
+        transition={{
+          duration: 18,
+          repeat: Infinity,
+          ease: "easeInOut",
         }}
       />
 
+      {/* Large right ambient orb */}
+      <motion.div
+        aria-hidden="true"
+        className="absolute -right-40 top-[5%] h-[500px] w-[500px] rounded-full bg-primary-light/[0.045] blur-[125px] sm:h-[620px] sm:w-[620px]"
+        animate={{
+          x: [0, -40, -10, 0],
+          y: [0, 50, 15, 0],
+          scale: [1, 0.94, 1.06, 1],
+        }}
+        transition={{
+          duration: 22,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+      />
+
+      {/* Bottom atmospheric glow */}
+      <motion.div
+        aria-hidden="true"
+        className="absolute bottom-[-20%] left-1/2 h-[420px] w-[700px] -translate-x-1/2 rounded-full bg-primary/[0.035] blur-[130px]"
+        animate={{
+          x: ["-50%", "-46%", "-54%", "-50%"],
+          y: [0, -30, 20, 0],
+          scale: [1, 1.05, 0.98, 1],
+        }}
+        transition={{
+          duration: 20,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+      />
+
+      {/* Large floating circle */}
+      <motion.span
+        aria-hidden="true"
+        className="absolute left-[15%] top-[22%] h-16 w-16 rounded-full border border-primary/10 bg-primary/[0.025]"
+        animate={{
+          x: [0, 18, -8, 0],
+          y: [0, -24, 12, 0],
+          scale: [1, 1.08, 0.94, 1],
+        }}
+        transition={{
+          duration: 11,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+      />
+
+      {/* Large floating circle */}
+      <motion.span
+        aria-hidden="true"
+        className="absolute right-[18%] top-[28%] h-24 w-24 rounded-full border border-primary-light/[0.08] bg-primary-light/[0.02]"
+        animate={{
+          x: [0, -24, 12, 0],
+          y: [0, 18, -15, 0],
+          scale: [1, 0.93, 1.06, 1],
+        }}
+        transition={{
+          duration: 14,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+      />
+
+      {/* Lower-left floating particle */}
+      <motion.span
+        aria-hidden="true"
+        className="absolute bottom-[18%] left-[8%] h-10 w-10 rounded-full bg-primary/[0.08]"
+        animate={{
+          x: [0, 26, -12, 0],
+          y: [0, -18, 9, 0],
+        }}
+        transition={{
+          duration: 9,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+      />
+
+      {/* Lower-right floating circle */}
+      <motion.span
+        aria-hidden="true"
+        className="absolute bottom-[24%] right-[10%] h-14 w-14 rounded-full border border-primary/10 bg-primary/[0.03]"
+        animate={{
+          x: [0, -20, 8, 0],
+          y: [0, 16, -12, 0],
+          scale: [1, 1.12, 0.92, 1],
+        }}
+        transition={{
+          duration: 12,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+      />
+
+      {/* Tiny glowing particles */}
+      <span
+        aria-hidden="true"
+        className="absolute left-[28%] top-[16%] h-1.5 w-1.5 rounded-full bg-primary-light/40 shadow-[0_0_10px_rgba(255,122,69,0.5)]"
+      />
+
+      <span
+        aria-hidden="true"
+        className="absolute right-[31%] top-[14%] h-1 w-1 rounded-full bg-primary/40 shadow-[0_0_8px_rgba(255,90,31,0.45)]"
+      />
+
+      <span
+        aria-hidden="true"
+        className="absolute bottom-[28%] left-[24%] h-1 w-1 rounded-full bg-primary-light/30"
+      />
+
+      <span
+        aria-hidden="true"
+        className="absolute bottom-[18%] right-[30%] h-1.5 w-1.5 rounded-full bg-primary/35 shadow-[0_0_9px_rgba(255,90,31,0.4)]"
+      />
+
+      {/* Central orange focus */}
       <div
-        className="absolute left-1/2 top-0 h-[380px] w-[720px] -translate-x-1/2 -translate-y-1/3 rounded-full opacity-50 blur-[140px]"
+        aria-hidden="true"
+        className="absolute inset-0"
         style={{
-          backgroundColor:
-            "color-mix(in srgb, var(--color-primary) 16%, transparent)",
+          background:
+            "radial-gradient(circle at 50% 42%, rgba(255,90,31,0.045), transparent 34%)",
+        }}
+      />
+
+      {/* Cinematic vignette */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(circle at center, transparent 30%, rgba(0,0,0,0.48) 100%)",
         }}
       />
     </div>

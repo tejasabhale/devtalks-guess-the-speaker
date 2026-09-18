@@ -3,9 +3,7 @@ import {
   AnimatePresence,
   motion,
   useInView,
-  useMotionValue,
-  useSpring,
-  useTransform,
+  useReducedMotion,
 } from "framer-motion";
 import {
   BookOpen,
@@ -29,15 +27,6 @@ if (typeof window !== "undefined") {
  *
  * React + Tailwind + Framer Motion + GSAP + lucide-react
  *
- * Visual direction:
- * - True black background
- * - Large floating ambient particles/orbs
- * - Subtle orange atmospheric lighting
- * - Puzzle portrait reveal
- * - GSAP word-pop split text
- * - Segmented autoplay rail
- * - Tilt highlight cards
- *
  * Lenis is handled globally in App.jsx.
  */
 
@@ -57,43 +46,43 @@ const SPEAKERS = [
     keywords: [
       {
         text: "DISTRIBUTED",
-        size: "text-lg sm:text-xl",
+        size: "text-sm sm:text-xl",
         weight: "font-bold",
         tone: "text-primary-light",
       },
       {
         text: "systems",
-        size: "text-sm sm:text-base",
+        size: "text-xs sm:text-base",
         weight: "font-normal",
         tone: "text-text-muted",
       },
       {
         text: "Anika Rao",
-        size: "text-xl sm:text-2xl",
+        size: "text-base sm:text-2xl",
         weight: "font-bold",
         tone: "text-text-primary",
       },
       {
         text: "maintainer",
-        size: "text-xs sm:text-sm",
+        size: "text-[10px] sm:text-sm",
         weight: "font-medium",
         tone: "text-accent",
       },
       {
         text: "scale",
-        size: "text-base sm:text-lg",
+        size: "text-sm sm:text-lg",
         weight: "font-medium",
         tone: "text-text-primary",
       },
       {
         text: "reliability",
-        size: "text-sm sm:text-base",
+        size: "text-xs sm:text-base",
         weight: "font-normal",
         tone: "text-text-muted",
       },
       {
         text: "OPEN SOURCE",
-        size: "text-lg sm:text-xl",
+        size: "text-sm sm:text-xl",
         weight: "font-bold",
         tone: "text-text-primary",
       },
@@ -132,37 +121,37 @@ const SPEAKERS = [
     keywords: [
       {
         text: "SECURITY",
-        size: "text-xl sm:text-2xl",
+        size: "text-base sm:text-2xl",
         weight: "font-bold",
         tone: "text-primary-light",
       },
       {
         text: "research",
-        size: "text-sm sm:text-base",
+        size: "text-xs sm:text-base",
         weight: "font-normal",
         tone: "text-text-muted",
       },
       {
         text: "Dev Kulkarni",
-        size: "text-lg sm:text-xl",
+        size: "text-sm sm:text-xl",
         weight: "font-bold",
         tone: "text-text-primary",
       },
       {
         text: "responsible disclosure",
-        size: "text-xs sm:text-sm",
+        size: "text-[10px] sm:text-sm",
         weight: "font-medium",
         tone: "text-accent",
       },
       {
         text: "trust",
-        size: "text-base sm:text-lg",
+        size: "text-sm sm:text-lg",
         weight: "font-medium",
         tone: "text-text-primary",
       },
       {
         text: "PRIVACY",
-        size: "text-lg sm:text-xl",
+        size: "text-sm sm:text-xl",
         weight: "font-bold",
         tone: "text-text-primary",
       },
@@ -189,7 +178,7 @@ const SPEAKERS = [
   {
     id: "speaker-3",
     category: "Developer experience",
-    subBadge: "Keynote",
+    subBadge: null,
     name: "PRIYA MENON",
     roleLines: [
       "Head of developer experience, a devtools startup",
@@ -201,37 +190,31 @@ const SPEAKERS = [
     keywords: [
       {
         text: "DEVELOPER",
-        size: "text-lg sm:text-xl",
+        size: "text-sm sm:text-xl",
         weight: "font-bold",
         tone: "text-primary-light",
       },
       {
         text: "experience",
-        size: "text-sm sm:text-base",
+        size: "text-xs sm:text-base",
         weight: "font-normal",
         tone: "text-text-muted",
       },
       {
         text: "Priya Menon",
-        size: "text-xl sm:text-2xl",
+        size: "text-base sm:text-2xl",
         weight: "font-bold",
         tone: "text-text-primary",
       },
       {
-        text: "keynote",
-        size: "text-xs sm:text-sm",
-        weight: "font-medium",
-        tone: "text-accent",
-      },
-      {
         text: "velocity",
-        size: "text-base sm:text-lg",
+        size: "text-sm sm:text-lg",
         weight: "font-medium",
         tone: "text-text-primary",
       },
       {
         text: "CRAFT",
-        size: "text-lg sm:text-xl",
+        size: "text-sm sm:text-xl",
         weight: "font-bold",
         tone: "text-text-primary",
       },
@@ -350,6 +333,9 @@ function SplitReveal({
             delay,
             stagger,
             ease: "back.out(2.4)",
+            onComplete: () => {
+              gsap.set(targets, { clearProps: "willChange" });
+            },
           },
         );
 
@@ -369,8 +355,6 @@ function SplitReveal({
       trig?.kill();
       ctx.revert();
     };
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [text, trigger, stagger, delay]);
 
   return <Tag ref={ref} className={className} />;
@@ -403,8 +387,6 @@ export default function SpeakerReveal({ autoplayMs = 7000 }) {
     const timeout = setTimeout(() => goTo(index + 1), autoplayMs);
 
     return () => clearTimeout(timeout);
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [index, autoplayMs]);
 
   useLayoutEffect(() => {
@@ -446,8 +428,6 @@ export default function SpeakerReveal({ autoplayMs = 7000 }) {
     });
 
     return () => segmentTweenRef.current?.kill();
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [index, autoplayMs]);
 
   return (
@@ -522,7 +502,7 @@ export default function SpeakerReveal({ autoplayMs = 7000 }) {
         </div>
 
         {/* Main content */}
-        <div className="flex flex-1 flex-col justify-center overflow-hidden">
+        <div className="flex flex-1 flex-col justify-center lg:overflow-hidden">
           <AnimatePresence mode="wait">
             <motion.div
               key={speaker.id}
@@ -530,88 +510,21 @@ export default function SpeakerReveal({ autoplayMs = 7000 }) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }}
               transition={springSoft}
-              className="grid grid-cols-1 items-center gap-5 sm:gap-8 lg:grid-cols-[1fr_auto_1fr] lg:gap-10 xl:gap-14"
             >
-              {/* Identity */}
-              <div className="order-2 flex flex-col items-center text-center lg:order-1 lg:items-end lg:text-right">
+              {/* Mobile */}
+              <div className="flex flex-col items-center py-2 text-center lg:hidden">
                 <motion.span
                   initial={{ opacity: 0, y: -8 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{
-                    ...springSnappy,
-                    delay: 0.05,
-                  }}
-                  className="inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-2.5 py-0.5 text-[11px] font-medium text-primary-light backdrop-blur-sm"
+                  transition={{ ...springSnappy, delay: 0.05 }}
+                  className="inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-[11px] font-medium tracking-wide text-primary-light"
                 >
                   {speaker.category}
                 </motion.span>
 
-                <h3 className="font-display mt-2.5 text-2xl font-semibold uppercase leading-[0.95] tracking-tight text-text-primary sm:text-4xl xl:text-5xl">
-                  {speaker.name.split(" ").map((word, i) => (
-                    <span
-                      key={word}
-                      className="block overflow-hidden pb-[0.06em]"
-                    >
-                      <motion.span
-                        className="block"
-                        initial={{
-                          y: "100%",
-                          scale: 0.85,
-                        }}
-                        animate={{
-                          y: "0%",
-                          scale: 1,
-                        }}
-                        transition={{
-                          ...springSoft,
-                          delay: 0.1 + i * 0.09,
-                        }}
-                      >
-                        {word}
-                      </motion.span>
-                    </span>
-                  ))}
-                </h3>
-
-                {speaker.subBadge && (
-                  <motion.span
-                    initial={{
-                      opacity: 0,
-                      scale: 0.7,
-                    }}
-                    animate={{
-                      opacity: 1,
-                      scale: 1,
-                    }}
-                    transition={{
-                      ...springSnappy,
-                      delay: 0.32,
-                    }}
-                    className="mt-2 inline-flex items-center rounded-full bg-primary px-2.5 py-0.5 text-[11px] font-semibold text-text-dark"
-                  >
-                    {speaker.subBadge}
-                  </motion.span>
-                )}
-
-                <div className="mt-2.5 space-y-0.5">
-                  {speaker.roleLines.map((line, i) => (
-                    <p key={line} className="text-xs text-text-muted">
-                      <SplitReveal
-                        text={line}
-                        delay={0.28 + i * 0.06}
-                        stagger={0.02}
-                      />
-                    </p>
-                  ))}
-                </div>
-              </div>
-
-              {/* Portrait */}
-              <div className="order-1 flex justify-center lg:order-2">
                 <motion.div
-                  animate={{
-                    y: [0, -7, 0],
-                  }}
+                  className="mt-6"
+                  animate={{ y: [0, -6, 0] }}
                   transition={{
                     duration: 5,
                     repeat: Infinity,
@@ -619,81 +532,250 @@ export default function SpeakerReveal({ autoplayMs = 7000 }) {
                   }}
                 >
                   <PuzzlePortrait
-                    key={revealKey}
+                    key={`${revealKey}-m`}
                     src={speaker.image}
                     name={speaker.name}
-                    size={190}
+                    size={260}
+                    cols={4}
                   />
+                </motion.div>
+
+                <motion.h3
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ ...springSoft, delay: 0.14 }}
+                  className="font-display mt-5 text-[26px] font-semibold uppercase leading-none tracking-tight text-text-primary"
+                >
+                  {speaker.name}
+                </motion.h3>
+
+                {speaker.subBadge && (
+                  <motion.span
+                    initial={{ opacity: 0, scale: 0.7 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ ...springSnappy, delay: 0.24 }}
+                    className="mt-3 inline-flex items-center rounded-full bg-primary px-3 py-1 text-[11px] font-semibold text-text-dark"
+                  >
+                    {speaker.subBadge}
+                  </motion.span>
+                )}
+
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3, duration: 0.4 }}
+                  className="mt-2 text-xs text-text-muted"
+                >
+                  {speaker.roleLines.join("  ·  ")}
+                </motion.p>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ ...springSoft, delay: 0.36 }}
+                  className="mt-8 w-full max-w-[300px] border-t border-white/10 pt-6"
+                >
+                  <p className="font-display text-lg font-medium italic leading-relaxed text-text-primary">
+                    &ldquo;{speaker.quote}&rdquo;
+                  </p>
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.48, duration: 0.4 }}
+                  className="mt-5 flex items-center gap-2.5"
+                >
+                  <span className="h-px w-6 bg-primary/50" />
+                  <p className="font-label text-[10px] uppercase tracking-[0.15em] text-text-muted">
+                    {speaker.taglineLabel}
+                  </p>
+                  <span className="h-px w-6 bg-primary/50" />
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ ...springSoft, delay: 0.54 }}
+                  className="mt-5 flex flex-wrap items-center justify-center gap-2"
+                >
+                  {speaker.keywords.slice(0, 3).map((kw) => (
+                    <span
+                      key={kw.text}
+                      className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[11px] font-medium uppercase tracking-wide text-text-secondary"
+                    >
+                      {kw.text}
+                    </span>
+                  ))}
                 </motion.div>
               </div>
 
-              {/* Quote / keywords */}
-              <div className="order-3 flex flex-col items-center text-center lg:items-start lg:text-left">
-                <p className="max-w-sm text-base font-semibold leading-snug text-text-primary sm:text-lg xl:max-w-md xl:text-xl">
-                  <SplitReveal
-                    text={speaker.quote}
-                    delay={0.18}
-                    stagger={0.03}
-                  />
-                </p>
+              {/* Desktop / tablet */}
+              <div className="hidden items-center gap-10 lg:grid lg:grid-cols-[1fr_auto_1fr] xl:gap-14">
+                {/* Identity */}
+                <div className="flex flex-col items-end text-right">
+                  <motion.span
+                    initial={{ opacity: 0, y: -8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{
+                      ...springSnappy,
+                      delay: 0.05,
+                    }}
+                    className="inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-2.5 py-0.5 text-[11px] font-medium text-primary-light backdrop-blur-sm"
+                  >
+                    {speaker.category}
+                  </motion.span>
 
-                <p className="mt-3 text-xs text-text-muted">
-                  <SplitReveal
-                    text={speaker.taglineLabel}
-                    delay={0.42}
-                    stagger={0.018}
-                  />
-                </p>
+                  <h3 className="font-display mt-2.5 text-4xl font-semibold uppercase leading-[0.95] tracking-tight text-text-primary xl:text-5xl">
+                    {speaker.name.split(" ").map((word, i) => (
+                      <span
+                        key={word}
+                        className="block overflow-hidden pb-[0.06em]"
+                      >
+                        <motion.span
+                          className="block"
+                          initial={{
+                            y: "100%",
+                            scale: 0.85,
+                          }}
+                          animate={{
+                            y: "0%",
+                            scale: 1,
+                          }}
+                          transition={{
+                            ...springSoft,
+                            delay: 0.1 + i * 0.09,
+                          }}
+                        >
+                          {word}
+                        </motion.span>
+                      </span>
+                    ))}
+                  </h3>
 
-                <motion.span
-                  initial={{ scaleX: 0 }}
-                  animate={{ scaleX: 1 }}
-                  transition={{
-                    ...springSoft,
-                    delay: 0.58,
-                  }}
-                  style={{
-                    transformOrigin: "left",
-                  }}
-                  className="mt-1.5 h-0.5 w-8 bg-primary shadow-[0_0_10px_rgba(255,90,31,0.45)]"
-                />
-
-                <div className="font-display mt-2.5 flex max-w-xs flex-wrap items-baseline justify-center gap-x-2.5 gap-y-0.5 lg:justify-start">
-                  {speaker.keywords.map((kw, i) => (
+                  {speaker.subBadge && (
                     <motion.span
-                      key={kw.text}
                       initial={{
                         opacity: 0,
-                        y: 10,
-                        scale: 0.8,
+                        scale: 0.7,
                       }}
                       animate={{
                         opacity: 1,
-                        y: 0,
                         scale: 1,
                       }}
                       transition={{
                         ...springSnappy,
-                        delay: 0.62 + i * 0.045,
+                        delay: 0.32,
                       }}
-                      className={`${kw.size} ${kw.weight} ${kw.tone} leading-none`}
+                      className="mt-2 inline-flex items-center rounded-full bg-primary px-2.5 py-0.5 text-[11px] font-semibold text-text-dark"
                     >
-                      {kw.text}
+                      {speaker.subBadge}
                     </motion.span>
-                  ))}
+                  )}
+
+                  <div className="mt-2.5 space-y-0.5">
+                    {speaker.roleLines.map((line, i) => (
+                      <p key={line} className="text-xs text-text-muted">
+                        <SplitReveal
+                          text={line}
+                          delay={0.28 + i * 0.06}
+                          stagger={0.02}
+                        />
+                      </p>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Portrait */}
+                <div className="flex justify-center">
+                  <motion.div
+                    animate={{
+                      y: [0, -7, 0],
+                    }}
+                    transition={{
+                      duration: 5,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    }}
+                  >
+                    <PuzzlePortrait
+                      key={revealKey}
+                      src={speaker.image}
+                      name={speaker.name}
+                      size={340}
+                      cols={6}
+                    />
+                  </motion.div>
+                </div>
+
+                {/* Quote / keywords */}
+                <div className="flex flex-col items-start text-left">
+                  <p className="max-w-sm text-lg font-semibold leading-snug text-text-primary xl:max-w-md xl:text-xl">
+                    <SplitReveal
+                      text={speaker.quote}
+                      delay={0.18}
+                      stagger={0.03}
+                    />
+                  </p>
+
+                  <p className="mt-3 text-xs text-text-muted">
+                    <SplitReveal
+                      text={speaker.taglineLabel}
+                      delay={0.42}
+                      stagger={0.018}
+                    />
+                  </p>
+
+                  <motion.span
+                    initial={{ scaleX: 0 }}
+                    animate={{ scaleX: 1 }}
+                    transition={{
+                      ...springSoft,
+                      delay: 0.58,
+                    }}
+                    style={{
+                      transformOrigin: "left",
+                    }}
+                    className="mt-1.5 h-0.5 w-8 bg-primary shadow-[0_0_10px_rgba(255,90,31,0.45)]"
+                  />
+
+                  <div className="font-display mt-2.5 flex max-w-xs flex-wrap items-baseline gap-x-2.5 gap-y-0.5">
+                    {speaker.keywords.map((kw, i) => (
+                      <motion.span
+                        key={kw.text}
+                        initial={{
+                          opacity: 0,
+                          y: 10,
+                          scale: 0.8,
+                        }}
+                        animate={{
+                          opacity: 1,
+                          y: 0,
+                          scale: 1,
+                        }}
+                        transition={{
+                          ...springSnappy,
+                          delay: 0.62 + i * 0.045,
+                        }}
+                        className={`${kw.size} ${kw.weight} ${kw.tone} leading-none`}
+                      >
+                        {kw.text}
+                      </motion.span>
+                    ))}
+                  </div>
                 </div>
               </div>
             </motion.div>
           </AnimatePresence>
         </div>
 
-        {/* Highlight cards */}
+        {/* Highlights */}
         <div
           ref={cardsRef}
-          className="mt-4 grid grid-cols-1 gap-3 sm:mt-6 sm:grid-cols-3 xl:gap-4"
+          className="mt-8 flex flex-col divide-y divide-white/10 border-t border-white/10 sm:mt-10 lg:mt-6 lg:flex-row lg:divide-x lg:divide-y-0 lg:border-t-0"
         >
           {speaker.cards.map((card, i) => (
-            <HighlightCard
+            <HighlightItem
               key={`${speaker.id}-${card.label}`}
               icon={card.icon}
               label={card.label}
@@ -708,94 +790,30 @@ export default function SpeakerReveal({ autoplayMs = 7000 }) {
   );
 }
 
-function HighlightCard({ icon: Icon, label, text, index, inView }) {
-  const cardRef = useRef(null);
-
-  const mouseX = useMotionValue(0.5);
-  const mouseY = useMotionValue(0.5);
-
-  const rotateXRaw = useTransform(mouseY, [0, 1], [6, -6]);
-
-  const rotateYRaw = useTransform(mouseX, [0, 1], [-6, 6]);
-
-  const rotateX = useSpring(rotateXRaw, {
-    stiffness: 220,
-    damping: 22,
-  });
-
-  const rotateY = useSpring(rotateYRaw, {
-    stiffness: 220,
-    damping: 22,
-  });
-
-  const glowX = useTransform(mouseX, [0, 1], ["0%", "100%"]);
-
-  const glowY = useTransform(mouseY, [0, 1], ["0%", "100%"]);
-
-  function handleMouseMove(e) {
-    const rect = cardRef.current?.getBoundingClientRect();
-    if (!rect) return;
-
-    mouseX.set((e.clientX - rect.left) / rect.width);
-
-    mouseY.set((e.clientY - rect.top) / rect.height);
-  }
-
-  function handleMouseLeave() {
-    mouseX.set(0.5);
-    mouseY.set(0.5);
-  }
-
+function HighlightItem({ icon: Icon, label, text, index, inView }) {
   return (
     <motion.div
-      ref={cardRef}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      style={{
-        rotateX,
-        rotateY,
-        transformPerspective: 900,
-      }}
-      initial={{
-        opacity: 0,
-        y: 18,
-      }}
-      animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 18 }}
+      initial={{ opacity: 0, y: 16 }}
+      animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 16 }}
       transition={{
         ...springSoft,
         delay: index * 0.08,
       }}
-      className="group relative overflow-hidden rounded-xl border border-white/10 bg-white/[0.025] px-4 py-3.5 backdrop-blur-sm transition-colors duration-300 hover:border-primary/30 hover:bg-white/[0.04]"
+      className="group flex items-start gap-3 py-4 first:pt-0 last:pb-0 lg:flex-1 lg:flex-col lg:items-start lg:gap-2.5 lg:px-6 lg:py-0 lg:first:pl-0 lg:last:pr-0"
     >
-      <motion.div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-        style={{
-          background: `radial-gradient(160px circle at ${glowX} ${glowY}, color-mix(in srgb, var(--color-primary) 14%, transparent), transparent 70%)`,
-        }}
-      />
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary-light transition-colors duration-300 group-hover:bg-primary/15">
+        {Icon && <Icon size={14} strokeWidth={2} />}
+      </div>
 
-      {Icon && (
-        <Icon
-          aria-hidden
-          className="pointer-events-none absolute -right-2 -top-2 h-12 w-12 text-primary-light/10 transition-transform duration-500 group-hover:scale-110 group-hover:text-primary-light/20"
-          strokeWidth={1.2}
-        />
-      )}
-
-      <div className="relative flex items-center gap-2">
-        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary-light">
-          {Icon && <Icon size={13} strokeWidth={2} />}
-        </div>
-
+      <div>
         <p className="font-display text-sm font-semibold text-text-primary">
           {label}
         </p>
-      </div>
 
-      <p className="relative mt-1.5 text-xs leading-relaxed text-text-secondary">
-        {text}
-      </p>
+        <p className="mt-1 text-xs leading-relaxed text-text-secondary">
+          {text}
+        </p>
+      </div>
     </motion.div>
   );
 }
@@ -833,8 +851,6 @@ function PuzzlePortrait({ src, name, size = 190, cols = 6 }) {
     }
 
     return list;
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [src, name, size, cols]);
 
   useLayoutEffect(() => {
@@ -854,6 +870,7 @@ function PuzzlePortrait({ src, name, size = 190, cols = 6 }) {
         rotate: 0,
         scale: 1,
         opacity: 1,
+        clearProps: "willChange",
       });
 
       return;
@@ -878,19 +895,20 @@ function PuzzlePortrait({ src, name, size = 190, cols = 6 }) {
           duration: 0.95,
           delay: (i) => tiles[i].delay,
           ease: "back.out(1.6)",
+          onComplete: () => {
+            gsap.set(pieces, { clearProps: "willChange" });
+          },
         },
       );
     }, el);
 
     return () => ctx.revert();
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [src, tiles]);
 
   return (
     <div
       ref={containerRef}
-      className="relative h-[140px] w-[140px] shrink-0 overflow-hidden rounded-full border border-primary/30 bg-black sm:h-[210px] sm:w-[210px] lg:h-[280px] lg:w-[280px] xl:h-[320px] xl:w-[320px]"
+      className="relative h-[240px] w-[240px] shrink-0 overflow-hidden rounded-full border border-primary/30 bg-black sm:h-[280px] sm:w-[280px] lg:h-[340px] lg:w-[340px] xl:h-[380px] xl:w-[380px]"
       style={{
         boxShadow:
           "0 0 70px color-mix(in srgb, var(--color-primary) 14%, transparent)",
@@ -945,164 +963,24 @@ function mulberry32(seed) {
   };
 }
 
-/**
- * Background atmosphere.
- *
- * Large floating circles/orbs with very slow motion.
- * They intentionally stay low-opacity and blurred so they
- * add depth without fighting the content.
- */
 function SectionBackdrop() {
+  const prefersReducedMotion = useReducedMotion();
+
   return (
-    <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
-      {/* Large ambient orange orb */}
-      <motion.div
-        aria-hidden="true"
-        className="absolute -left-32 top-[-10%] h-[420px] w-[420px] rounded-full bg-primary/[0.055] blur-[110px] sm:h-[520px] sm:w-[520px]"
-        animate={{
-          x: [0, 45, 10, 0],
-          y: [0, 25, 55, 0],
-          scale: [1, 1.08, 0.96, 1],
-        }}
-        transition={{
-          duration: 18,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-      />
+    <div
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-0 z-0 overflow-hidden bg-black"
+    >
+      <div className="absolute inset-0 bg-black" />
 
-      {/* Large right orb */}
-      <motion.div
-        aria-hidden="true"
-        className="absolute -right-40 top-[5%] h-[500px] w-[500px] rounded-full bg-primary-light/[0.045] blur-[125px] sm:h-[620px] sm:w-[620px]"
-        animate={{
-          x: [0, -40, -10, 0],
-          y: [0, 50, 15, 0],
-          scale: [1, 0.94, 1.06, 1],
-        }}
-        transition={{
-          duration: 22,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-      />
-
-      {/* Bottom atmosphere */}
-      <motion.div
-        aria-hidden="true"
-        className="absolute bottom-[-20%] left-1/2 h-[420px] w-[700px] -translate-x-1/2 rounded-full bg-primary/[0.035] blur-[130px]"
-        animate={{
-          x: ["-50%", "-46%", "-54%", "-50%"],
-          y: [0, -30, 20, 0],
-          scale: [1, 1.05, 0.98, 1],
-        }}
-        transition={{
-          duration: 20,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-      />
-
-      {/* Floating circle particles */}
-      <motion.span
-        aria-hidden="true"
-        className="absolute left-[15%] top-[22%] h-16 w-16 rounded-full border border-primary/10 bg-primary/[0.025] blur-[1px]"
-        animate={{
-          x: [0, 18, -8, 0],
-          y: [0, -24, 12, 0],
-          scale: [1, 1.08, 0.94, 1],
-        }}
-        transition={{
-          duration: 11,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-      />
-
-      <motion.span
-        aria-hidden="true"
-        className="absolute right-[18%] top-[28%] h-24 w-24 rounded-full border border-primary-light/[0.08] bg-primary-light/[0.02] blur-[1px]"
-        animate={{
-          x: [0, -24, 12, 0],
-          y: [0, 18, -15, 0],
-          scale: [1, 0.93, 1.06, 1],
-        }}
-        transition={{
-          duration: 14,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-      />
-
-      <motion.span
-        aria-hidden="true"
-        className="absolute bottom-[18%] left-[8%] h-10 w-10 rounded-full bg-primary/[0.08] blur-[1px]"
-        animate={{
-          x: [0, 26, -12, 0],
-          y: [0, -18, 9, 0],
-        }}
-        transition={{
-          duration: 9,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-      />
-
-      <motion.span
-        aria-hidden="true"
-        className="absolute bottom-[24%] right-[10%] h-14 w-14 rounded-full border border-primary/10 bg-primary/[0.03]"
-        animate={{
-          x: [0, -20, 8, 0],
-          y: [0, 16, -12, 0],
-          scale: [1, 1.12, 0.92, 1],
-        }}
-        transition={{
-          duration: 12,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-      />
-
-      {/* Tiny distant particles */}
-      <span
-        aria-hidden="true"
-        className="absolute left-[28%] top-[16%] h-1.5 w-1.5 rounded-full bg-primary-light/40 shadow-[0_0_10px_rgba(255,122,69,0.5)]"
-      />
-
-      <span
-        aria-hidden="true"
-        className="absolute right-[31%] top-[14%] h-1 w-1 rounded-full bg-primary/40 shadow-[0_0_8px_rgba(255,90,31,0.45)]"
-      />
-
-      <span
-        aria-hidden="true"
-        className="absolute bottom-[28%] left-[24%] h-1 w-1 rounded-full bg-primary-light/30"
-      />
-
-      <span
-        aria-hidden="true"
-        className="absolute bottom-[18%] right-[30%] h-1.5 w-1.5 rounded-full bg-primary/35 shadow-[0_0_9px_rgba(255,90,31,0.4)]"
-      />
-
-      {/* Extremely subtle radial focus */}
-      <div
-        aria-hidden="true"
-        className="absolute inset-0"
-        style={{
-          background:
-            "radial-gradient(circle at 50% 42%, rgba(255,90,31,0.045), transparent 34%)",
-        }}
-      />
-
-      {/* Vignette */}
-      <div
-        aria-hidden="true"
-        className="absolute inset-0"
-        style={{
-          background:
-            "radial-gradient(circle at center, transparent 30%, rgba(0,0,0,0.45) 100%)",
-        }}
-      />
+      {!prefersReducedMotion && (
+        <div className="absolute inset-0">
+          <div className="absolute left-[12%] top-[18%] h-1 w-1 rounded-full bg-white/10" />
+          <div className="absolute right-[16%] top-[26%] h-1 w-1 rounded-full bg-white/10" />
+          <div className="absolute bottom-[22%] left-[20%] h-1 w-1 rounded-full bg-white/10" />
+          <div className="absolute bottom-[18%] right-[24%] h-1 w-1 rounded-full bg-white/10" />
+        </div>
+      )}
     </div>
   );
 }

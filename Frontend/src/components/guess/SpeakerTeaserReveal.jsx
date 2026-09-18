@@ -2,7 +2,6 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   AnimatePresence,
   motion,
-  useInView,
   useMotionValue,
   useSpring,
   useTransform,
@@ -21,30 +20,6 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
-
-/**
- * DevTalks — Mystery Speaker Reveal
- *
- * React + Tailwind + Framer Motion + GSAP + lucide-react
- *
- * Visual direction:
- * - Pure black cinematic background
- * - Large floating ambient circles
- * - Subtle orange atmospheric glow
- * - Floating micro particles
- * - Puzzle-tile mystery portrait
- * - GSAP word-pop split text
- * - Segmented autoplay rail
- * - Tilt clue cards
- *
- * Lenis is handled globally in App.jsx.
- *
- * Identity is intentionally withheld:
- * - Codename instead of real name
- * - Darkened / desaturated portrait
- * - Large question mark overlay
- * - Progressive clue reveal
- */
 
 const MYSTERY_SPEAKERS = [
   {
@@ -75,13 +50,13 @@ const MYSTERY_SPEAKERS = [
     keywords: [
       {
         text: "distributed",
-        size: "text-lg sm:text-xl",
+        size: "text-lg sm:text-xl lg:text-2xl",
         weight: "font-bold",
         tone: "text-primary-light",
       },
       {
         text: "systems",
-        size: "text-sm sm:text-base",
+        size: "text-sm sm:text-base lg:text-lg",
         weight: "font-normal",
         tone: "text-text-muted",
       },
@@ -263,6 +238,7 @@ function SplitReveal({
 
   useLayoutEffect(() => {
     const el = ref.current;
+
     if (!el) return;
 
     const reduceMotion = window.matchMedia(
@@ -285,6 +261,7 @@ function SplitReveal({
         y: 0,
         scale: 1,
         opacity: 1,
+        filter: "blur(0px)",
       });
 
       return;
@@ -297,19 +274,21 @@ function SplitReveal({
         gsap.fromTo(
           targets,
           {
-            y: 22,
-            scale: 0.7,
+            y: 16,
+            scale: 0.82,
             opacity: 0,
+            filter: "blur(4px)",
             transformOrigin: "50% 100%",
           },
           {
             y: 0,
             scale: 1,
             opacity: 1,
-            duration: 0.6,
+            filter: "blur(0px)",
+            duration: 0.34,
             delay,
             stagger,
-            ease: "back.out(2.4)",
+            ease: "power3.out",
           },
         );
 
@@ -346,13 +325,6 @@ export default function MysterySpeakerReveal({
 
   const speaker = MYSTERY_SPEAKERS[index];
 
-  const cardsRef = useRef(null);
-
-  const cardsInView = useInView(cardsRef, {
-    once: false,
-    amount: 0.3,
-  });
-
   const segmentRefs = useRef([]);
   const segmentTweenRef = useRef(null);
 
@@ -361,11 +333,13 @@ export default function MysterySpeakerReveal({
       (nextIndex + MYSTERY_SPEAKERS.length) % MYSTERY_SPEAKERS.length;
 
     setIndex(wrapped);
-    setRevealKey((k) => k + 1);
+    setRevealKey((key) => key + 1);
   }
 
   useEffect(() => {
-    const timeout = setTimeout(() => goTo(index + 1), autoplayMs);
+    const timeout = setTimeout(() => {
+      goTo(index + 1);
+    }, autoplayMs);
 
     return () => clearTimeout(timeout);
 
@@ -381,13 +355,17 @@ export default function MysterySpeakerReveal({
       "(prefers-reduced-motion: reduce)",
     ).matches;
 
-    segments.forEach((seg, i) => {
-      if (!seg) return;
+    segments.forEach((segment, i) => {
+      if (!segment) return;
 
       if (i < index) {
-        gsap.set(seg, { scaleX: 1 });
-      } else if (i > index) {
-        gsap.set(seg, { scaleX: 0 });
+        gsap.set(segment, {
+          scaleX: 1,
+        });
+      } else {
+        gsap.set(segment, {
+          scaleX: 0,
+        });
       }
     });
 
@@ -396,10 +374,6 @@ export default function MysterySpeakerReveal({
     const current = segments[index];
 
     if (!current) return;
-
-    gsap.set(current, {
-      scaleX: 0,
-    });
 
     if (reduceMotion) {
       gsap.set(current, {
@@ -421,433 +395,446 @@ export default function MysterySpeakerReveal({
   }, [index, autoplayMs]);
 
   return (
-    <section className="font-body relative flex min-h-[100dvh] w-full flex-col overflow-y-auto bg-black px-5 py-8 sm:px-10 sm:py-6 lg:h-[100dvh] lg:overflow-hidden lg:px-16 lg:py-6 xl:px-24 2xl:px-32">
+    <section className="font-body relative min-h-[100dvh] w-full overflow-hidden bg-black text-text-primary">
       <FontStyles />
       <SectionBackdrop />
 
-      <div className="relative z-10 mx-auto flex h-full w-full flex-col justify-between">
-        {/* Header */}
-        <div className="mb-3 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2.5">
+      <div className="relative z-10 mx-auto flex min-h-[100dvh] w-full max-w-[1600px] flex-col px-5 py-6 sm:px-8 sm:py-7 lg:px-12 xl:px-16">
+        {/* =========================================================
+            TOP BAR
+        ========================================================== */}
+
+        <header className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
             <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary-light opacity-60" />
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary-light opacity-50" />
 
               <span className="relative inline-flex h-2 w-2 rounded-full bg-primary-light" />
             </span>
 
-            <h2 className="font-display text-xl font-semibold tracking-tight text-text-primary sm:text-2xl">
-              <SplitReveal text="Guess the speaker" trigger="scroll" />
-            </h2>
+            <div>
+              <p className="font-label text-[9px] uppercase tracking-[0.28em] text-primary-light">
+                DevTalks / Mystery Room
+              </p>
+
+              <p className="font-display mt-0.5 text-sm font-semibold tracking-tight text-text-primary sm:text-base">
+                Guess the Speaker
+              </p>
+            </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="hidden items-center gap-1.5 rounded-full border border-border bg-black/30 px-3 py-1 text-[11px] text-text-secondary backdrop-blur-sm sm:flex">
-              <Calendar size={12} strokeWidth={2} />
+          <div className="flex items-center gap-2">
+            <div className="hidden items-center gap-2 rounded-full border border-white/10 bg-black/40 px-3 py-1.5 text-[10px] text-text-secondary backdrop-blur-md sm:flex">
+              <Calendar size={12} />
 
               <span>
                 {eventDateLabel} · {daysUntilEvent}d left
               </span>
             </div>
 
-            <div className="flex items-center gap-1.5">
-              <motion.button
-                type="button"
-                aria-label="Previous mystery speaker"
-                onClick={() => goTo(index - 1)}
-                whileHover={{
-                  scale: 1.08,
-                  rotate: -4,
-                }}
-                whileTap={{
-                  scale: 0.9,
-                }}
-                transition={springSnappy}
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-black/30 text-text-secondary backdrop-blur-sm transition-colors duration-200 hover:border-border-orange hover:text-primary-light"
-              >
-                <ChevronLeft size={17} strokeWidth={2.5} />
-              </motion.button>
-
-              <motion.button
-                type="button"
-                aria-label="Next mystery speaker"
-                onClick={() => goTo(index + 1)}
-                whileHover={{
-                  scale: 1.08,
-                  rotate: 4,
-                }}
-                whileTap={{
-                  scale: 0.9,
-                }}
-                transition={springSnappy}
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-border-orange bg-surface-orange text-primary-light transition-colors duration-200 hover:bg-primary hover:text-text-dark"
-              >
-                <ChevronRight size={17} strokeWidth={2.5} />
-              </motion.button>
-            </div>
-          </div>
-        </div>
-
-        {/* Segmented autoplay rail */}
-        <div
-          className="mb-4 flex w-full gap-1.5 sm:mb-6"
-          role="tablist"
-          aria-label="Mystery speakers"
-        >
-          {MYSTERY_SPEAKERS.map((s, i) => (
-            <button
-              key={s.id}
+            <motion.button
               type="button"
-              role="tab"
-              aria-selected={i === index}
-              aria-label={`Go to ${s.codename}`}
-              onClick={() => goTo(i)}
-              className="relative h-px flex-1 overflow-hidden rounded-full bg-white/10"
+              aria-label="Previous mystery speaker"
+              onClick={() => goTo(index - 1)}
+              whileHover={{
+                scale: 1.06,
+                x: -2,
+              }}
+              whileTap={{
+                scale: 0.92,
+              }}
+              transition={springSnappy}
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-black/40 text-text-secondary backdrop-blur-md transition-colors duration-200 hover:border-border-orange hover:text-primary-light"
             >
-              <span
-                ref={(el) => {
-                  segmentRefs.current[i] = el;
-                }}
-                className="absolute inset-y-0 left-0 w-full origin-left rounded-full bg-primary shadow-[0_0_10px_rgba(255,90,31,0.5)]"
-              />
-            </button>
-          ))}
+              <ChevronLeft size={16} />
+            </motion.button>
+
+            <motion.button
+              type="button"
+              aria-label="Next mystery speaker"
+              onClick={() => goTo(index + 1)}
+              whileHover={{
+                scale: 1.06,
+                x: 2,
+              }}
+              whileTap={{
+                scale: 0.92,
+              }}
+              transition={springSnappy}
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-border-orange bg-surface-orange text-primary-light transition-colors duration-200 hover:bg-primary hover:text-black"
+            >
+              <ChevronRight size={16} />
+            </motion.button>
+          </div>
+        </header>
+
+        {/* =========================================================
+            PROGRESS RAIL
+        ========================================================== */}
+
+        <div className="mt-5 flex items-center gap-3">
+          <span className="font-label text-[8px] tracking-[0.2em] text-text-muted">
+            0{index + 1}
+          </span>
+
+          <div
+            className="flex flex-1 gap-1.5"
+            role="tablist"
+            aria-label="Mystery speakers"
+          >
+            {MYSTERY_SPEAKERS.map((speakerItem, i) => (
+              <button
+                key={speakerItem.id}
+                type="button"
+                role="tab"
+                aria-selected={i === index}
+                aria-label={`Go to ${speakerItem.codename}`}
+                onClick={() => goTo(i)}
+                className="relative h-px flex-1 overflow-hidden rounded-full bg-white/10"
+              >
+                <span
+                  ref={(el) => {
+                    segmentRefs.current[i] = el;
+                  }}
+                  className="absolute inset-y-0 left-0 w-full origin-left rounded-full bg-primary shadow-[0_0_10px_rgba(255,90,31,0.5)]"
+                />
+              </button>
+            ))}
+          </div>
+
+          <span className="font-label text-[8px] tracking-[0.2em] text-text-muted">
+            0{MYSTERY_SPEAKERS.length}
+          </span>
         </div>
 
-        {/* Mystery speaker detail */}
-        <div className="flex flex-1 flex-col justify-center overflow-hidden">
+        {/* =========================================================
+            MAIN REVEAL STAGE
+        ========================================================== */}
+
+        <main className="flex flex-1 items-center py-8 sm:py-10 lg:py-12">
           <AnimatePresence mode="wait">
             <motion.div
               key={speaker.id}
               initial={{
                 opacity: 0,
-                y: 12,
+                y: 14,
+                filter: "blur(4px)",
               }}
               animate={{
                 opacity: 1,
                 y: 0,
+                filter: "blur(0px)",
               }}
               exit={{
                 opacity: 0,
-                y: -12,
+                y: -10,
+                filter: "blur(3px)",
               }}
-              transition={springSoft}
-              className="grid grid-cols-1 items-center gap-5 sm:gap-8 lg:grid-cols-[1fr_auto_1fr] lg:gap-10 xl:gap-14"
+              transition={{
+                duration: 0.32,
+                ease: "easeOut",
+              }}
+              className="grid w-full items-center gap-10 lg:grid-cols-[0.9fr_1.25fr_0.9fr] lg:gap-8 xl:gap-14"
             >
-              {/* Left: codename + clues */}
-              <div className="order-2 flex flex-col items-center text-center lg:order-1 lg:items-end lg:text-right">
-                <motion.span
-                  initial={{
-                    opacity: 0,
-                    y: -8,
-                  }}
-                  animate={{
-                    opacity: 1,
-                    y: 0,
-                  }}
-                  transition={{
-                    ...springSnappy,
-                    delay: 0.05,
-                  }}
-                  className="inline-flex items-center rounded-full border border-primary/15 bg-primary/[0.045] px-2.5 py-0.5 text-[11px] font-medium text-primary-light backdrop-blur-sm"
-                >
-                  {speaker.track}
-                </motion.span>
+              {/* =====================================================
+                  LEFT PANEL
+              ====================================================== */}
 
-                <h3 className="font-display mt-2.5 text-2xl font-semibold uppercase leading-[0.95] tracking-tight text-text-primary sm:text-4xl xl:text-5xl">
-                  {speaker.codename.split(" ").map((word, i) => (
-                    <span
-                      key={word + i}
-                      className="block overflow-hidden pb-[0.06em]"
-                    >
-                      <motion.span
-                        className="block"
-                        initial={{
-                          y: "100%",
-                          scale: 0.85,
-                        }}
-                        animate={{
-                          y: "0%",
-                          scale: 1,
-                        }}
-                        transition={{
-                          ...springSoft,
-                          delay: 0.1 + i * 0.09,
-                        }}
+              <div className="order-2 flex flex-col lg:order-1">
+                <div className="flex items-center gap-2">
+                  <span className="h-px w-8 bg-primary" />
+
+                  <span className="font-label text-[9px] uppercase tracking-[0.25em] text-primary-light">
+                    Current subject
+                  </span>
+                </div>
+
+                <div className="mt-5">
+                  <span className="inline-flex rounded-full border border-primary/20 bg-primary/[0.05] px-3 py-1 text-[10px] font-medium uppercase tracking-wide text-primary-light backdrop-blur-sm">
+                    {speaker.track}
+                  </span>
+
+                  <div className="mt-4 overflow-hidden">
+                    <h1 className="font-display text-4xl font-semibold uppercase leading-[0.88] tracking-[-0.05em] text-text-primary sm:text-5xl xl:text-6xl">
+                      {speaker.codename.split(" ").map((word, i) => (
+                        <span
+                          key={`${word}-${i}`}
+                          className="block overflow-hidden pb-[0.07em]"
+                        >
+                          <motion.span
+                            className="block"
+                            initial={{
+                              y: "100%",
+                              scale: 0.88,
+                            }}
+                            animate={{
+                              y: "0%",
+                              scale: 1,
+                            }}
+                            transition={{
+                              ...springSoft,
+                              delay: 0.08 + i * 0.07,
+                            }}
+                          >
+                            {word}
+                          </motion.span>
+                        </span>
+                      ))}
+                    </h1>
+                  </div>
+
+                  <motion.div
+                    initial={{
+                      opacity: 0,
+                      y: 8,
+                      scale: 0.9,
+                    }}
+                    animate={{
+                      opacity: 1,
+                      y: 0,
+                      scale: 1,
+                    }}
+                    transition={{
+                      ...springSnappy,
+                      delay: 0.24,
+                    }}
+                    className="mt-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-black"
+                  >
+                    <span className="h-1.5 w-1.5 rounded-full bg-black/70" />
+                    {speaker.revealStatus}
+                  </motion.div>
+                </div>
+
+                {/* Main clue list */}
+                <div className="mt-7 border-l border-white/10 pl-4">
+                  <p className="font-label text-[8px] uppercase tracking-[0.22em] text-text-muted">
+                    Intelligence feed
+                  </p>
+
+                  <div className="mt-3 space-y-2.5">
+                    {speaker.clues.map((clue, i) => (
+                      <div
+                        key={clue.text}
+                        className={`flex items-start gap-2 ${
+                          clue.unlocked
+                            ? "text-text-secondary"
+                            : "text-text-muted/40"
+                        }`}
                       >
-                        {word}
-                      </motion.span>
-                    </span>
-                  ))}
-                </h3>
+                        <span className="font-label shrink-0 pt-0.5 text-[8px] text-primary-light/60">
+                          0{i + 1}
+                        </span>
 
-                <motion.span
-                  initial={{
-                    opacity: 0,
-                    scale: 0.7,
-                  }}
-                  animate={{
-                    opacity: 1,
-                    scale: 1,
-                  }}
-                  transition={{
-                    ...springSnappy,
-                    delay: 0.32,
-                  }}
-                  className="mt-2 inline-flex items-center rounded-full bg-primary px-2.5 py-0.5 text-[11px] font-semibold text-black"
-                >
-                  {speaker.revealStatus}
-                </motion.span>
-
-                <div className="mt-3 space-y-1.5">
-                  {speaker.clues.map((clue, i) => (
-                    <p
-                      key={clue.text}
-                      className={`flex items-start gap-1.5 text-xs leading-relaxed lg:justify-end ${
-                        clue.unlocked
-                          ? "text-text-secondary"
-                          : "text-text-muted/50"
-                      }`}
-                    >
-                      <span className="font-label mt-px shrink-0 text-[10px] tracking-wide text-primary-light/70 lg:order-2">
-                        {`CLUE 0${i + 1}`}
-                      </span>
-
-                      <span className="lg:order-1">
-                        {clue.unlocked ? (
-                          <SplitReveal
-                            text={clue.text}
-                            delay={0.28 + i * 0.06}
-                            stagger={0.015}
-                          />
-                        ) : (
-                          "•••••• •••• ••••• ••• ••••••••."
-                        )}
-                      </span>
-                    </p>
-                  ))}
+                        <span className="text-xs leading-relaxed">
+                          {clue.unlocked ? (
+                            <SplitReveal
+                              text={clue.text}
+                              delay={0.24 + i * 0.04}
+                              stagger={0.012}
+                            />
+                          ) : (
+                            "•••••• •••• ••••• ••• ••••••••."
+                          )}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
 
-              {/* Center: mystery portrait */}
-              <div className="order-1 flex justify-center lg:order-2">
-                <motion.div
-                  animate={{
-                    y: [0, -7, 0],
-                  }}
-                  transition={{
-                    duration: 5,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
-                >
-                  <PuzzlePortrait
-                    key={revealKey}
-                    src={speaker.image}
-                    name={speaker.codename}
-                    size={190}
+              {/* =====================================================
+                  CENTER PORTRAIT
+              ====================================================== */}
+
+              <div className="order-1 flex flex-col items-center lg:order-2">
+                <div className="relative">
+                  <div className="absolute inset-[-22px] rounded-full border border-primary/[0.08]" />
+
+                  <div className="absolute inset-[-44px] rounded-full border border-white/[0.035]" />
+
+                  <motion.div
+                    aria-hidden
+                    className="absolute left-1/2 top-1/2 h-px w-[150%] -translate-x-1/2 bg-gradient-to-r from-transparent via-primary/25 to-transparent"
+                    animate={{
+                      opacity: [0.25, 0.7, 0.25],
+                    }}
+                    transition={{
+                      duration: 3.5,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    }}
                   />
-                </motion.div>
+
+                  <motion.div
+                    animate={{
+                      y: [0, -8, 0],
+                    }}
+                    transition={{
+                      duration: 5.5,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    }}
+                  >
+                    <PuzzlePortrait
+                      key={revealKey}
+                      src={speaker.image}
+                      name={speaker.codename}
+                      size={320}
+                    />
+                  </motion.div>
+                </div>
+
+                <div className="mt-7 flex items-center gap-3">
+                  <span className="h-px w-8 bg-border" />
+
+                  <span className="font-label text-[8px] uppercase tracking-[0.28em] text-text-muted">
+                    Identity classified
+                  </span>
+
+                  <span className="h-px w-8 bg-border" />
+                </div>
+
+                <div className="mt-3 flex items-center gap-2 text-text-muted">
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary/70" />
+
+                  <span className="font-label text-[8px] uppercase tracking-[0.2em]">
+                    Decode the clues
+                  </span>
+                </div>
               </div>
 
-              {/* Right: teaser + keywords */}
-              <div className="order-3 flex flex-col items-center text-center lg:items-start lg:text-left">
-                <p className="max-w-sm text-base font-semibold leading-snug text-text-primary sm:text-lg xl:max-w-md xl:text-xl">
-                  <SplitReveal
-                    text={speaker.teaser}
-                    delay={0.18}
-                    stagger={0.03}
+              {/* =====================================================
+                  RIGHT PANEL
+              ====================================================== */}
+
+              <div className="order-3 flex flex-col">
+                <div className="flex items-center gap-2">
+                  <span className="font-label text-[8px] uppercase tracking-[0.25em] text-primary-light">
+                    Signal intercepted
+                  </span>
+
+                  <span className="h-px flex-1 bg-white/10" />
+                </div>
+
+                <div className="mt-5">
+                  <p className="max-w-lg font-display text-xl font-semibold leading-tight tracking-tight text-text-primary sm:text-2xl xl:text-[1.75rem]">
+                    <SplitReveal
+                      text={speaker.teaser}
+                      delay={0.12}
+                      stagger={0.025}
+                    />
+                  </p>
+
+                  <p className="mt-5 flex items-center gap-2 text-xs text-text-muted">
+                    <HelpCircle size={13} />
+
+                    <SplitReveal
+                      text="Think you know who it is?"
+                      delay={0.36}
+                      stagger={0.015}
+                    />
+                  </p>
+
+                  <motion.div
+                    initial={{
+                      scaleX: 0,
+                    }}
+                    animate={{
+                      scaleX: 1,
+                    }}
+                    transition={{
+                      ...springSoft,
+                      delay: 0.48,
+                    }}
+                    style={{
+                      transformOrigin: "left",
+                    }}
+                    className="mt-4 h-0.5 w-10 bg-primary shadow-[0_0_12px_rgba(255,90,31,0.45)]"
                   />
-                </p>
+                </div>
 
-                <p className="mt-3 flex items-center gap-1.5 text-xs text-text-muted">
-                  <HelpCircle size={12} strokeWidth={2} />
+                {/* Keywords */}
+                <div className="mt-8">
+                  <p className="font-label text-[8px] uppercase tracking-[0.22em] text-text-muted">
+                    Signals
+                  </p>
 
-                  <SplitReveal
-                    text="Think you know who it is?"
-                    delay={0.42}
-                    stagger={0.018}
+                  <div className="font-display mt-4 flex max-w-sm flex-wrap items-baseline gap-x-3 gap-y-2">
+                    {speaker.keywords.map((keyword, i) => (
+                      <motion.span
+                        key={keyword.text}
+                        initial={{
+                          opacity: 0,
+                          y: 8,
+                          scale: 0.86,
+                          filter: "blur(3px)",
+                        }}
+                        animate={{
+                          opacity: 1,
+                          y: 0,
+                          scale: 1,
+                          filter: "blur(0px)",
+                        }}
+                        transition={{
+                          ...springSnappy,
+                          delay: 0.5 + i * 0.04,
+                        }}
+                        className={`${keyword.size} ${keyword.weight} ${keyword.tone} leading-none`}
+                      >
+                        {keyword.text}
+                      </motion.span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Metadata */}
+                <div className="mt-8 grid max-w-sm grid-cols-2 gap-2">
+                  <RevealMeta label="Status" value="CLASSIFIED" delay={0.58} />
+
+                  <RevealMeta
+                    label="Confidence"
+                    value={`${speaker.revealStatus.split(" ")[0]}/4`}
+                    delay={0.64}
                   />
-                </p>
-
-                <motion.span
-                  initial={{
-                    scaleX: 0,
-                  }}
-                  animate={{
-                    scaleX: 1,
-                  }}
-                  transition={{
-                    ...springSoft,
-                    delay: 0.58,
-                  }}
-                  style={{
-                    transformOrigin: "left",
-                  }}
-                  className="mt-1.5 h-0.5 w-8 bg-primary shadow-[0_0_10px_rgba(255,90,31,0.45)]"
-                />
-
-                <div className="font-display mt-2.5 flex max-w-xs flex-wrap items-baseline justify-center gap-x-2.5 gap-y-0.5 lg:justify-start">
-                  {speaker.keywords.map((kw, i) => (
-                    <motion.span
-                      key={kw.text}
-                      initial={{
-                        opacity: 0,
-                        y: 10,
-                        scale: 0.8,
-                      }}
-                      animate={{
-                        opacity: 1,
-                        y: 0,
-                        scale: 1,
-                      }}
-                      transition={{
-                        ...springSnappy,
-                        delay: 0.62 + i * 0.045,
-                      }}
-                      className={`${kw.size} ${kw.weight} ${kw.tone} leading-none`}
-                    >
-                      {kw.text}
-                    </motion.span>
-                  ))}
                 </div>
               </div>
             </motion.div>
           </AnimatePresence>
-        </div>
-
-        {/* Clue status rail */}
-        <div
-          ref={cardsRef}
-          className="mt-4 grid grid-cols-1 gap-3 sm:mt-6 sm:grid-cols-3 xl:gap-4"
-        >
-          {speaker.clues.slice(0, 3).map((clue, i) => (
-            <ClueCard
-              key={`${speaker.id}-clue-${i}`}
-              index={i}
-              clue={clue}
-              defaultIcon={speaker.cardIcon}
-              inView={cardsInView}
-            />
-          ))}
-        </div>
-
-        <p className="mt-3 text-center text-[11px] text-text-muted sm:text-left">
-          New clues unlock as {eventDateLabel} gets closer — check back weekly.
-        </p>
+        </main>
       </div>
     </section>
   );
 }
 
-function ClueCard({ clue, defaultIcon: Icon = Sparkles, index, inView }) {
-  const cardRef = useRef(null);
-
-  const mouseX = useMotionValue(0.5);
-  const mouseY = useMotionValue(0.5);
-
-  const rotateXRaw = useTransform(mouseY, [0, 1], [6, -6]);
-
-  const rotateYRaw = useTransform(mouseX, [0, 1], [-6, 6]);
-
-  const rotateX = useSpring(rotateXRaw, {
-    stiffness: 220,
-    damping: 22,
-  });
-
-  const rotateY = useSpring(rotateYRaw, {
-    stiffness: 220,
-    damping: 22,
-  });
-
-  const glowX = useTransform(mouseX, [0, 1], ["0%", "100%"]);
-
-  const glowY = useTransform(mouseY, [0, 1], ["0%", "100%"]);
-
-  function handleMouseMove(e) {
-    const rect = cardRef.current?.getBoundingClientRect();
-
-    if (!rect) return;
-
-    mouseX.set((e.clientX - rect.left) / rect.width);
-
-    mouseY.set((e.clientY - rect.top) / rect.height);
-  }
-
-  function handleMouseLeave() {
-    mouseX.set(0.5);
-    mouseY.set(0.5);
-  }
-
-  const ShownIcon = clue.unlocked ? Icon : Lock;
-
+function RevealMeta({ label, value, delay = 0 }) {
   return (
     <motion.div
-      ref={cardRef}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      style={{
-        rotateX,
-        rotateY,
-        transformPerspective: 900,
-      }}
       initial={{
         opacity: 0,
-        y: 18,
+        y: 8,
       }}
-      animate={
-        inView
-          ? {
-              opacity: clue.unlocked ? 1 : 0.55,
-              y: 0,
-            }
-          : {
-              opacity: 0,
-              y: 18,
-            }
-      }
+      animate={{
+        opacity: 1,
+        y: 0,
+      }}
       transition={{
         ...springSoft,
-        delay: index * 0.08,
+        delay,
       }}
-      className={`group relative overflow-hidden rounded-xl border px-4 py-3.5 transition-colors duration-300 ${
-        clue.unlocked
-          ? "border-white/10 bg-white/[0.025] backdrop-blur-sm hover:border-primary/30 hover:bg-white/[0.04]"
-          : "border-white/[0.06] bg-white/[0.015]"
-      }`}
+      className="rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-2.5"
     >
-      {/* Pointer-following glow */}
-      <motion.div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-        style={{
-          background: `radial-gradient(160px circle at ${glowX} ${glowY}, color-mix(in srgb, var(--color-primary) 14%, transparent), transparent 70%)`,
-        }}
-      />
+      <p className="font-label text-[7px] uppercase tracking-[0.2em] text-text-muted">
+        {label}
+      </p>
 
-      <ShownIcon
-        aria-hidden
-        className="pointer-events-none absolute -right-2 -top-2 h-12 w-12 text-primary-light/10 transition-transform duration-500 group-hover:scale-110 group-hover:text-primary-light/20"
-        strokeWidth={1.2}
-      />
-
-      <div className="relative flex items-center gap-2">
-        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary-light">
-          <ShownIcon size={13} strokeWidth={2} />
-        </div>
-
-        <p className="font-display text-sm font-semibold text-text-primary">
-          {clue.unlocked ? "Unlocked" : "Locked"}
-        </p>
-      </div>
-
-      <p className="relative mt-1.5 text-xs leading-relaxed text-text-secondary">
-        {clue.unlocked ? clue.text : "This clue drops closer to the event."}
+      <p className="font-label mt-1 text-[10px] font-medium tracking-wide text-primary-light">
+        {value}
       </p>
     </motion.div>
   );
 }
 
-function PuzzlePortrait({ src, name, size = 190, cols = 6 }) {
+function PuzzlePortrait({ src, name, size = 320, cols = 6 }) {
   const fallbackTones = [
     "var(--color-primary)",
     "var(--color-primary-light)",
@@ -860,7 +847,6 @@ function PuzzlePortrait({ src, name, size = 190, cols = 6 }) {
 
   const tiles = useMemo(() => {
     const rand = mulberry32(hashString(src || name));
-
     const list = [];
 
     for (let row = 0; row < cols; row++) {
@@ -873,9 +859,9 @@ function PuzzlePortrait({ src, name, size = 190, cols = 6 }) {
           bgPosY: cols === 1 ? 0 : (row / (cols - 1)) * 100,
           startX: (rand() - 0.5) * size * 1.1,
           startY: (rand() - 0.5) * size * 1.1,
-          startRotate: (rand() - 0.5) * 160,
-          startScale: 0.4 + rand() * 0.3,
-          delay: rand() * 0.3,
+          startRotate: (rand() - 0.5) * 150,
+          startScale: 0.45 + rand() * 0.25,
+          delay: rand() * 0.18,
           fallback: fallbackTones[Math.floor(rand() * fallbackTones.length)],
         });
       }
@@ -904,11 +890,13 @@ function PuzzlePortrait({ src, name, size = 190, cols = 6 }) {
         rotate: 0,
         scale: 1,
         opacity: 1,
+        filter: "blur(0px)",
       });
 
       gsap.set(markRef.current, {
         opacity: 1,
         scale: 1,
+        filter: "blur(0px)",
       });
 
       return;
@@ -925,6 +913,7 @@ function PuzzlePortrait({ src, name, size = 190, cols = 6 }) {
           rotate: (i) => tiles[i].startRotate,
           scale: (i) => tiles[i].startScale,
           opacity: 0,
+          filter: "blur(5px)",
         },
         {
           x: 0,
@@ -932,9 +921,10 @@ function PuzzlePortrait({ src, name, size = 190, cols = 6 }) {
           rotate: 0,
           scale: 1,
           opacity: 1,
-          duration: 0.95,
+          filter: "blur(0px)",
+          duration: 0.58,
           delay: (i) => tiles[i].delay,
-          ease: "back.out(1.6)",
+          ease: "power3.out",
         },
       );
 
@@ -942,17 +932,19 @@ function PuzzlePortrait({ src, name, size = 190, cols = 6 }) {
         markRef.current,
         {
           opacity: 0,
-          scale: 0.5,
-          rotate: -12,
+          scale: 0.6,
+          rotate: -10,
+          filter: "blur(4px)",
         },
         {
           opacity: 1,
           scale: 1,
           rotate: 0,
-          duration: 0.5,
-          ease: "back.out(2.2)",
+          filter: "blur(0px)",
+          duration: 0.28,
+          ease: "back.out(1.8)",
         },
-        "-=0.25",
+        "-=0.18",
       );
     }, el);
 
@@ -964,10 +956,10 @@ function PuzzlePortrait({ src, name, size = 190, cols = 6 }) {
   return (
     <div
       ref={containerRef}
-      className="relative h-[140px] w-[140px] shrink-0 overflow-hidden rounded-full border border-primary/30 bg-black sm:h-[210px] sm:w-[210px] lg:h-[280px] lg:w-[280px] xl:h-[320px] xl:w-[320px]"
+      className="relative h-[190px] w-[190px] shrink-0 overflow-hidden rounded-full border border-primary/30 bg-black sm:h-[250px] sm:w-[250px] lg:h-[320px] lg:w-[320px] xl:h-[350px] xl:w-[350px]"
       style={{
         boxShadow:
-          "0 0 70px color-mix(in srgb, var(--color-primary) 14%, transparent)",
+          "0 0 90px color-mix(in srgb, var(--color-primary) 14%, transparent)",
       }}
     >
       {tiles.map((tile) => (
@@ -988,17 +980,15 @@ function PuzzlePortrait({ src, name, size = 190, cols = 6 }) {
         />
       ))}
 
-      {/* Dark scrim */}
       <div className="pointer-events-none absolute inset-0 rounded-full bg-black/25" />
 
-      {/* Mystery mark */}
       <div
         ref={markRef}
         className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-0"
         aria-hidden
       >
         <span
-          className="font-display select-none text-[64px] font-bold leading-none text-primary-light sm:text-[96px] lg:text-[128px] xl:text-[148px]"
+          className="font-display select-none text-[76px] font-bold leading-none text-primary-light sm:text-[104px] lg:text-[136px] xl:text-[148px]"
           style={{
             textShadow:
               "0 4px 24px color-mix(in srgb, var(--color-app-bg) 60%, transparent)",
@@ -1009,6 +999,19 @@ function PuzzlePortrait({ src, name, size = 190, cols = 6 }) {
       </div>
 
       <div className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-inset ring-primary/30" />
+
+      <motion.div
+        aria-hidden
+        className="absolute left-1/2 top-0 h-full w-px origin-top -translate-x-1/2 bg-gradient-to-b from-transparent via-primary/35 to-transparent"
+        animate={{
+          opacity: [0.15, 0.5, 0.15],
+        }}
+        transition={{
+          duration: 3,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+      />
     </div>
   );
 }
@@ -1038,21 +1041,16 @@ function mulberry32(seed) {
   };
 }
 
-/**
- * Same cinematic background language as SpeakerReveal:
- * pure black base + large floating circles + orange atmosphere
- * + subtle distant particles + central focus + vignette.
- */
 function SectionBackdrop() {
   return (
     <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden bg-black">
-      {/* Large left ambient orb */}
+      {/* Left atmospheric orb */}
       <motion.div
         aria-hidden="true"
-        className="absolute -left-32 top-[-10%] h-[420px] w-[420px] rounded-full bg-primary/[0.055] blur-[110px] sm:h-[520px] sm:w-[520px]"
+        className="absolute -left-40 top-[-12%] h-[420px] w-[420px] rounded-full bg-primary/[0.06] blur-[115px] sm:h-[520px] sm:w-[520px]"
         animate={{
-          x: [0, 45, 10, 0],
-          y: [0, 25, 55, 0],
+          x: [0, 40, 10, 0],
+          y: [0, 20, 50, 0],
           scale: [1, 1.08, 0.96, 1],
         }}
         transition={{
@@ -1062,14 +1060,14 @@ function SectionBackdrop() {
         }}
       />
 
-      {/* Large right ambient orb */}
+      {/* Right atmospheric orb */}
       <motion.div
         aria-hidden="true"
-        className="absolute -right-40 top-[5%] h-[500px] w-[500px] rounded-full bg-primary-light/[0.045] blur-[125px] sm:h-[620px] sm:w-[620px]"
+        className="absolute -right-44 top-[4%] h-[520px] w-[520px] rounded-full bg-primary-light/[0.04] blur-[125px] sm:h-[620px] sm:w-[620px]"
         animate={{
-          x: [0, -40, -10, 0],
-          y: [0, 50, 15, 0],
-          scale: [1, 0.94, 1.06, 1],
+          x: [0, -35, -10, 0],
+          y: [0, 45, 14, 0],
+          scale: [1, 0.95, 1.05, 1],
         }}
         transition={{
           duration: 22,
@@ -1078,30 +1076,19 @@ function SectionBackdrop() {
         }}
       />
 
-      {/* Bottom atmospheric glow */}
-      <motion.div
+      {/* Center glow */}
+      <div
         aria-hidden="true"
-        className="absolute bottom-[-20%] left-1/2 h-[420px] w-[700px] -translate-x-1/2 rounded-full bg-primary/[0.035] blur-[130px]"
-        animate={{
-          x: ["-50%", "-46%", "-54%", "-50%"],
-          y: [0, -30, 20, 0],
-          scale: [1, 1.05, 0.98, 1],
-        }}
-        transition={{
-          duration: 20,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
+        className="absolute left-1/2 top-1/2 h-[520px] w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/[0.035] blur-[130px] sm:h-[700px] sm:w-[700px]"
       />
 
-      {/* Large floating circle */}
+      {/* Ambient circles */}
       <motion.span
         aria-hidden="true"
-        className="absolute left-[15%] top-[22%] h-16 w-16 rounded-full border border-primary/10 bg-primary/[0.025]"
+        className="absolute left-[10%] top-[24%] h-14 w-14 rounded-full border border-primary/10 bg-primary/[0.02]"
         animate={{
-          x: [0, 18, -8, 0],
-          y: [0, -24, 12, 0],
-          scale: [1, 1.08, 0.94, 1],
+          x: [0, 16, -8, 0],
+          y: [0, -18, 10, 0],
         }}
         transition={{
           duration: 11,
@@ -1110,14 +1097,13 @@ function SectionBackdrop() {
         }}
       />
 
-      {/* Large floating circle */}
       <motion.span
         aria-hidden="true"
-        className="absolute right-[18%] top-[28%] h-24 w-24 rounded-full border border-primary-light/[0.08] bg-primary-light/[0.02]"
+        className="absolute right-[12%] top-[22%] h-24 w-24 rounded-full border border-primary-light/[0.08] bg-primary-light/[0.018]"
         animate={{
-          x: [0, -24, 12, 0],
-          y: [0, 18, -15, 0],
-          scale: [1, 0.93, 1.06, 1],
+          x: [0, -18, 8, 0],
+          y: [0, 15, -12, 0],
+          scale: [1, 0.94, 1.05, 1],
         }}
         transition={{
           duration: 14,
@@ -1126,13 +1112,12 @@ function SectionBackdrop() {
         }}
       />
 
-      {/* Lower-left floating particle */}
       <motion.span
         aria-hidden="true"
-        className="absolute bottom-[18%] left-[8%] h-10 w-10 rounded-full bg-primary/[0.08]"
+        className="absolute bottom-[18%] left-[7%] h-8 w-8 rounded-full bg-primary/[0.08]"
         animate={{
-          x: [0, 26, -12, 0],
-          y: [0, -18, 9, 0],
+          x: [0, 22, -10, 0],
+          y: [0, -15, 8, 0],
         }}
         transition={{
           duration: 9,
@@ -1141,14 +1126,12 @@ function SectionBackdrop() {
         }}
       />
 
-      {/* Lower-right floating circle */}
       <motion.span
         aria-hidden="true"
-        className="absolute bottom-[24%] right-[10%] h-14 w-14 rounded-full border border-primary/10 bg-primary/[0.03]"
+        className="absolute bottom-[22%] right-[8%] h-12 w-12 rounded-full border border-primary/10 bg-primary/[0.025]"
         animate={{
-          x: [0, -20, 8, 0],
-          y: [0, 16, -12, 0],
-          scale: [1, 1.12, 0.92, 1],
+          x: [0, -18, 7, 0],
+          y: [0, 12, -9, 0],
         }}
         transition={{
           duration: 12,
@@ -1157,45 +1140,59 @@ function SectionBackdrop() {
         }}
       />
 
-      {/* Tiny glowing particles */}
-      <span
+      {/* Tiny nodes */}
+      <span className="absolute left-[24%] top-[16%] h-1.5 w-1.5 rounded-full bg-primary-light/40 shadow-[0_0_10px_rgba(255,122,69,0.5)]" />
+
+      <span className="absolute right-[29%] top-[14%] h-1 w-1 rounded-full bg-primary/40 shadow-[0_0_8px_rgba(255,90,31,0.45)]" />
+
+      <span className="absolute bottom-[28%] left-[20%] h-1 w-1 rounded-full bg-primary-light/30" />
+
+      <span className="absolute bottom-[19%] right-[27%] h-1.5 w-1.5 rounded-full bg-primary/35 shadow-[0_0_9px_rgba(255,90,31,0.4)]" />
+
+      {/* Fine grid */}
+      <div
         aria-hidden="true"
-        className="absolute left-[28%] top-[16%] h-1.5 w-1.5 rounded-full bg-primary-light/40 shadow-[0_0_10px_rgba(255,122,69,0.5)]"
+        className="absolute inset-0 opacity-[0.018]"
+        style={{
+          backgroundImage: `
+            linear-gradient(
+              rgba(255,255,255,0.08) 1px,
+              transparent 1px
+            ),
+            linear-gradient(
+              90deg,
+              rgba(255,255,255,0.08) 1px,
+              transparent 1px
+            )
+          `,
+          backgroundSize: "64px 64px",
+        }}
       />
 
-      <span
-        aria-hidden="true"
-        className="absolute right-[31%] top-[14%] h-1 w-1 rounded-full bg-primary/40 shadow-[0_0_8px_rgba(255,90,31,0.45)]"
-      />
-
-      <span
-        aria-hidden="true"
-        className="absolute bottom-[28%] left-[24%] h-1 w-1 rounded-full bg-primary-light/30"
-      />
-
-      <span
-        aria-hidden="true"
-        className="absolute bottom-[18%] right-[30%] h-1.5 w-1.5 rounded-full bg-primary/35 shadow-[0_0_9px_rgba(255,90,31,0.4)]"
-      />
-
-      {/* Central orange focus */}
+      {/* Central focus */}
       <div
         aria-hidden="true"
         className="absolute inset-0"
         style={{
           background:
-            "radial-gradient(circle at 50% 42%, rgba(255,90,31,0.045), transparent 34%)",
+            "radial-gradient(circle at 50% 45%, rgba(255,90,31,0.05), transparent 35%)",
         }}
       />
 
-      {/* Cinematic vignette */}
+      {/* Vignette */}
       <div
         aria-hidden="true"
         className="absolute inset-0"
         style={{
           background:
-            "radial-gradient(circle at center, transparent 30%, rgba(0,0,0,0.48) 100%)",
+            "radial-gradient(circle at center, transparent 30%, rgba(0,0,0,0.55) 100%)",
         }}
+      />
+
+      {/* Bottom fade */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black via-black/40 to-transparent"
       />
     </div>
   );

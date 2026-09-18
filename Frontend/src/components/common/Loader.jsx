@@ -1,27 +1,15 @@
-import { useEffect, useState } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import { motion } from "framer-motion";
+import { Volume2, VolumeX } from "lucide-react";
+
+const DEFAULT_VIDEO = "/videos/devtalks-teaser.mp4";
+const DEFAULT_POSTER = "/images/devtalks-teaser-poster.webp";
+
+const LOADER_DURATION = 10000;
+const END_TRANSITION_DURATION = 850;
 
 const EASE = [0.16, 1, 0.3, 1];
 
-const LOADING_PHRASES = [
-  "Dimming the house lights…",
-  "Cueing the spotlight…",
-  "Reading the room…",
-  "Almost time to guess…",
-];
-
-// Fixed choreography (ms) — decorative only, not tied to real load state.
-const GLITCH_AT = 900;
-const REVEAL_AT = 1500;
-const DEFAULT_DURATION = 2800;
-
-/*
- * Exact same DevTalks wordmark styling used in Navbar + Footer.
- *
- * Font: Sora
- * Weight: 800
- * Letter spacing: -0.045em
- */
 const WORDMARK_STYLE = {
   fontFamily: "'Sora', sans-serif",
   fontWeight: 800,
@@ -29,378 +17,422 @@ const WORDMARK_STYLE = {
   fontSynthesis: "none",
 };
 
-/**
- * Full-screen "reveal" loader for DevTalks — Guess the Speaker.
- */
-export default function Loader({ onComplete, duration = DEFAULT_DURATION }) {
-  const [stage, setStage] = useState("scan");
-  const [phraseIndex, setPhraseIndex] = useState(0);
+export default function Loader({
+  onComplete,
+  videoSrc = DEFAULT_VIDEO,
+  poster = DEFAULT_POSTER,
+}) {
+  const videoRef = useRef(null);
+  const progressStartRef = useRef(null);
+  const completionTimerRef = useRef(null);
+  const animationFrameRef = useRef(null);
 
-  const prefersReducedMotion = useReducedMotion();
+  const [isMuted, setIsMuted] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [exiting, setExiting] = useState(false);
 
-  /*
-   * Fixed loader choreography.
-   */
   useEffect(() => {
-    if (prefersReducedMotion) {
-      setStage("reveal");
-      onComplete?.();
-      return undefined;
+    const video = videoRef.current;
+    if (!video) return;
+
+    let mounted = true;
+
+    video.preload = "auto";
+    video.playsInline = true;
+    video.autoplay = true;
+    video.muted = false;
+    video.currentTime = 0;
+
+    const updateProgress = (timestamp) => {
+      if (!mounted) return;
+
+      if (!progressStartRef.current) {
+        progressStartRef.current = timestamp;
+      }
+
+      const elapsed = timestamp - progressStartRef.current;
+      const nextProgress = Math.min((elapsed / LOADER_DURATION) * 100, 100);
+
+      setProgress(nextProgress);
+
+      if (nextProgress < 100 && !exiting) {
+        animationFrameRef.current = requestAnimationFrame(updateProgress);
+      }
+    };
+
+    const startTimeline = () => {
+      progressStartRef.current = null;
+      cancelAnimationFrame(animationFrameRef.current);
+
+      animationFrameRef.current = requestAnimationFrame(updateProgress);
+
+      clearTimeout(completionTimerRef.current);
+
+      completionTimerRef.current = setTimeout(finishLoader, LOADER_DURATION);
+    };
+
+    const playVideo = async () => {
+      try {
+        video.muted = false;
+        setIsMuted(false);
+
+        await video.play();
+
+        if (!mounted) return;
+
+        setIsPlaying(true);
+        startTimeline();
+      } catch {
+        /*
+         * Unmuted autoplay can be blocked by the browser.
+         * Fall back to muted autoplay so the teaser still starts.
+         */
+        try {
+          video.muted = true;
+          setIsMuted(true);
+
+          await video.play();
+
+          if (!mounted) return;
+
+          setIsPlaying(true);
+          startTimeline();
+        } catch {
+          /*
+           * If playback itself is unavailable, still run the
+           * 10-second loader timeline so the site never gets stuck.
+           */
+          setIsPlaying(false);
+          startTimeline();
+        }
+      }
+    };
+
+    const enableAudio = async () => {
+      try {
+        video.muted = false;
+        setIsMuted(false);
+
+        if (video.paused) {
+          await video.play();
+        }
+      } catch {
+        // Ignore browser playback restrictions.
+      }
+    };
+
+    const handleLoadedData = () => {
+      playVideo();
+    };
+
+    const handlePlay = () => {
+      if (!mounted) return;
+      setIsPlaying(true);
+    };
+
+    const handlePause = () => {
+      if (!mounted) return;
+      setIsPlaying(false);
+    };
+
+    const handleError = () => {
+      console.error("DevTalks teaser video failed to load.", video.error);
+
+      setIsPlaying(false);
+
+      /*
+       * The loader should still transition after 10 seconds
+       * instead of getting permanently stuck.
+       */
+      startTimeline();
+    };
+
+    window.addEventListener("pointerdown", enableAudio, { once: true });
+
+    window.addEventListener("keydown", enableAudio, { once: true });
+
+    video.addEventListener("loadeddata", handleLoadedData);
+
+    video.addEventListener("play", handlePlay);
+
+    video.addEventListener("pause", handlePause);
+
+    video.addEventListener("error", handleError);
+
+    video.load();
+
+    /*
+     * Start immediately if the browser has already cached
+     * enough data to play.
+     */
+    if (video.readyState >= 2) {
+      playVideo();
     }
 
-    const glitchTimer = setTimeout(() => {
-      setStage("glitch");
-    }, GLITCH_AT);
-
-    const revealTimer = setTimeout(() => {
-      setStage("reveal");
-    }, REVEAL_AT);
-
-    const completeTimer = setTimeout(() => {
-      onComplete?.();
-    }, duration);
-
     return () => {
-      clearTimeout(glitchTimer);
-      clearTimeout(revealTimer);
-      clearTimeout(completeTimer);
+      mounted = false;
+
+      cancelAnimationFrame(animationFrameRef.current);
+
+      clearTimeout(completionTimerRef.current);
+
+      window.removeEventListener("pointerdown", enableAudio);
+
+      window.removeEventListener("keydown", enableAudio);
+
+      video.removeEventListener("loadeddata", handleLoadedData);
+
+      video.removeEventListener("play", handlePlay);
+
+      video.removeEventListener("pause", handlePause);
+
+      video.removeEventListener("error", handleError);
     };
-  }, [prefersReducedMotion, duration, onComplete]);
 
-  /*
-   * Rotating loading phrases.
-   */
-  useEffect(() => {
-    if (prefersReducedMotion) return undefined;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [videoSrc]);
 
-    const id = setInterval(() => {
-      setPhraseIndex((i) => (i + 1) % LOADING_PHRASES.length);
-    }, 1800);
+  function finishLoader() {
+    if (exiting) return;
 
-    return () => clearInterval(id);
-  }, [prefersReducedMotion]);
+    setProgress(100);
+    setExiting(true);
 
-  return (
-    <div
-      role="status"
-      aria-live="polite"
-      aria-label="Loading"
-      className="fixed inset-0 z-[100] flex flex-col items-center justify-center overflow-hidden bg-[var(--color-bg)]"
-    >
-      <StageBackdrop reducedMotion={prefersReducedMotion} />
+    cancelAnimationFrame(animationFrameRef.current);
 
-      {/* Centerpiece: glitching "?" -> DevTalks */}
-      <div className="relative z-10 flex h-40 items-center justify-center sm:h-48">
-        <AnimatePresence mode="wait">
-          {stage !== "reveal" ? (
-            <GlitchMark
-              key="mark"
-              stage={stage}
-              reducedMotion={prefersReducedMotion}
-            />
-          ) : (
-            <motion.div
-              key="wordmark"
-              initial={{
-                opacity: 0,
-                scale: 0.92,
-                filter: "blur(10px)",
-              }}
-              animate={{
-                opacity: 1,
-                scale: 1,
-                filter: "blur(0px)",
-              }}
-              transition={{
-                duration: 0.6,
-                ease: EASE,
-              }}
-              className="relative flex flex-col items-center"
-            >
-              <span
-                style={WORDMARK_STYLE}
-                className="select-none text-5xl text-[var(--color-text-primary)] sm:text-6xl"
-              >
-                Dev
-                <span className="text-[var(--color-primary)]">Talks</span>
-              </span>
+    clearTimeout(completionTimerRef.current);
 
-              <div className="pointer-events-none absolute inset-0 -z-10 bg-[var(--color-primary)]/25 opacity-70 blur-3xl" />
+    const video = videoRef.current;
 
-              <motion.p
-                initial={{
-                  opacity: 0,
-                  y: 8,
-                }}
-                animate={{
-                  opacity: 1,
-                  y: 0,
-                }}
-                transition={{
-                  duration: 0.5,
-                  delay: 0.25,
-                  ease: EASE,
-                }}
-                className="mt-3 font-mono text-xs uppercase tracking-widest text-[var(--color-text-muted)] sm:text-sm"
-              >
-                Guess the speaker
-              </motion.p>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+    if (video) {
+      video.pause();
+    }
 
-      {/* Equalizer strip */}
-      <div
-        className="relative z-10 mt-8 flex h-10 items-end gap-2"
-        aria-hidden="true"
-      >
-        {[0, 1, 2, 3, 4].map((i) => (
-          <motion.span
-            key={i}
-            className="w-2 rounded-full bg-[var(--color-primary)]"
-            animate={
-              prefersReducedMotion
-                ? undefined
-                : {
-                    height: ["30%", "100%", "45%", "80%", "30%"],
-                  }
-            }
-            transition={{
-              duration: 1.1 + i * 0.15,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: i * 0.08,
-            }}
-            style={{
-              height: prefersReducedMotion ? "50%" : undefined,
-            }}
-          />
-        ))}
-      </div>
+    setTimeout(() => {
+      onComplete?.();
+    }, END_TRANSITION_DURATION);
+  }
 
-      {/* Rotating status phrase */}
-      <div className="relative z-10 mt-6 h-6">
-        <AnimatePresence mode="wait">
-          <motion.p
-            key={LOADING_PHRASES[phraseIndex]}
-            initial={{
-              opacity: 0,
-              y: 6,
-            }}
-            animate={{
-              opacity: 1,
-              y: 0,
-            }}
-            exit={{
-              opacity: 0,
-              y: -6,
-            }}
-            transition={{
-              duration: 0.35,
-              ease: EASE,
-            }}
-            className="font-mono text-sm uppercase tracking-widest text-[var(--color-text-muted)]"
-          >
-            {LOADING_PHRASES[phraseIndex]}
-          </motion.p>
-        </AnimatePresence>
-      </div>
-    </div>
-  );
-}
+  function toggleMute() {
+    const video = videoRef.current;
+    if (!video) return;
 
-/**
- * Mystery guest placeholder.
- */
-function GlitchMark({ stage, reducedMotion }) {
-  const glitching = stage === "glitch" && !reducedMotion;
+    video.muted = !video.muted;
+    setIsMuted(video.muted);
+
+    if (video.paused) {
+      video.play().catch(() => {});
+    }
+  }
 
   return (
     <motion.div
       initial={{
-        opacity: 0,
-        scale: 0.9,
-      }}
-      animate={{
         opacity: 1,
         scale: 1,
       }}
-      exit={{
-        opacity: 0,
-        scale: 1.05,
-        filter: "blur(6px)",
+      animate={{
+        opacity: exiting ? 0 : 1,
+        scale: exiting ? 1.04 : 1,
       }}
       transition={{
-        duration: 0.35,
+        duration: END_TRANSITION_DURATION / 1000,
         ease: EASE,
       }}
-      className="relative select-none text-8xl sm:text-9xl"
+      className="fixed inset-0 z-[100] overflow-hidden bg-black"
+      role="status"
+      aria-label="Loading DevTalks"
     >
-      <span
-        style={WORDMARK_STYLE}
-        className="relative z-10 text-[var(--color-text-primary)]"
+      {/* 9:16 video */}
+      <motion.div
+        className="absolute inset-0 flex items-center justify-center"
+        animate={{
+          scale: exiting ? 1.07 : 1,
+        }}
+        transition={{
+          duration: END_TRANSITION_DURATION / 1000,
+          ease: EASE,
+        }}
       >
-        ?
-      </span>
+        <div className="relative h-[100dvh] w-auto max-w-[100vw]">
+          <video
+            ref={videoRef}
+            src={videoSrc}
+            poster={poster}
+            autoPlay
+            playsInline
+            preload="auto"
+            controls={false}
+            className="h-full w-auto max-w-[100vw] object-contain"
+          />
 
-      {!reducedMotion && (
-        <>
-          <motion.span
+          {/* Base vignette */}
+          <div
             aria-hidden="true"
-            style={WORDMARK_STYLE}
-            className="absolute inset-0 z-0 text-[var(--color-primary)] mix-blend-screen"
-            animate={
-              glitching
-                ? {
-                    x: [0, -6, 4, -3, 0],
-                    opacity: [0, 0.8, 0.5, 0.7, 0],
-                  }
-                : {
-                    x: 0,
-                    opacity: 0,
-                  }
-            }
-            transition={{
-              duration: 0.45,
-              ease: "easeInOut",
-            }}
-          >
-            ?
-          </motion.span>
+            className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/25 via-transparent to-black/70"
+          />
 
-          <motion.span
+          {/* Orange atmosphere */}
+          <motion.div
             aria-hidden="true"
-            style={WORDMARK_STYLE}
-            className="absolute inset-0 z-0 text-[var(--color-primary-light)] mix-blend-screen"
-            animate={
-              glitching
-                ? {
-                    x: [0, 6, -4, 3, 0],
-                    opacity: [0, 0.7, 0.4, 0.6, 0],
-                  }
-                : {
-                    x: 0,
-                    opacity: 0,
-                  }
-            }
-            transition={{
-              duration: 0.45,
-              ease: "easeInOut",
-              delay: 0.03,
+            className="pointer-events-none absolute inset-0"
+            animate={{
+              opacity: exiting ? 0.75 : 0.35,
+              scale: exiting ? 1.2 : 1,
             }}
-          >
-            ?
-          </motion.span>
-        </>
-      )}
+            transition={{
+              duration: END_TRANSITION_DURATION / 1000,
+              ease: EASE,
+            }}
+            style={{
+              background:
+                "radial-gradient(circle at 50% 50%, rgba(255,90,31,0.12), transparent 55%)",
+            }}
+          />
 
-      <span className="absolute left-1/2 top-1/2 -z-10 h-40 w-40 -translate-x-1/2 -translate-y-1/2 rounded-full border border-[var(--color-border-orange)] opacity-40" />
+          {/* Scanlines */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 opacity-[0.045]"
+            style={{
+              backgroundImage:
+                "repeating-linear-gradient(180deg, transparent 0px, transparent 3px, rgba(255,255,255,0.08) 4px)",
+            }}
+          />
+        </div>
+      </motion.div>
+
+      {/* Ending black curtain */}
+      <motion.div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 z-30 bg-black"
+        initial={{
+          opacity: 0,
+        }}
+        animate={{
+          opacity: exiting ? 1 : 0,
+        }}
+        transition={{
+          duration: END_TRANSITION_DURATION / 1000,
+          ease: EASE,
+        }}
+      />
+
+      {/* Ending orange flash */}
+      <motion.div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 z-31"
+        initial={{
+          opacity: 0,
+          scale: 0.8,
+        }}
+        animate={{
+          opacity: exiting ? [0, 0.3, 0] : 0,
+          scale: exiting ? [0.8, 1.15, 1.3] : 0.8,
+        }}
+        transition={{
+          duration: END_TRANSITION_DURATION / 1000,
+          ease: EASE,
+        }}
+        style={{
+          background:
+            "radial-gradient(circle at center, rgba(255,90,31,0.3), transparent 40%)",
+        }}
+      />
+
+      {/* Top branding */}
+      <div className="absolute left-0 right-0 top-0 z-40 flex items-start justify-between px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-1.5 w-1.5">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary-light opacity-70" />
+
+              <span className="relative h-1.5 w-1.5 rounded-full bg-primary-light shadow-[0_0_10px_rgba(255,122,69,0.8)]" />
+            </span>
+
+            <span className="font-label text-[8px] uppercase tracking-[0.28em] text-white/50 sm:text-[9px]">
+              DEVKRAFT · PRESENTS
+            </span>
+          </div>
+
+          <span
+            style={WORDMARK_STYLE}
+            className="mt-2 block select-none text-lg text-white/85 sm:text-xl"
+          >
+            Dev
+            <span className="text-primary">Talks</span>
+          </span>
+        </div>
+
+        {/* Audio control */}
+        <motion.button
+          type="button"
+          onClick={toggleMute}
+          aria-label={isMuted ? "Turn audio on" : "Turn audio off"}
+          whileHover={{
+            scale: 1.06,
+          }}
+          whileTap={{
+            scale: 0.94,
+          }}
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-black/30 text-white/75 backdrop-blur-md transition-colors hover:border-primary/40 hover:text-primary-light sm:h-10 sm:w-10"
+        >
+          {isMuted ? <VolumeX size={15} /> : <Volume2 size={15} />}
+        </motion.button>
+      </div>
+
+      {/* Bottom controls */}
+      <div className="absolute bottom-0 left-0 right-0 z-40 px-4 pb-4 sm:px-6 sm:pb-6 lg:px-8 lg:pb-8">
+        <div className="flex items-center gap-3">
+          {/* 10 second timeline */}
+          <div className="h-px flex-1 overflow-hidden bg-white/10">
+            <motion.div
+              className="h-full origin-left bg-primary shadow-[0_0_14px_rgba(255,90,31,0.75)]"
+              style={{
+                width: `${progress}%`,
+              }}
+            />
+          </div>
+
+          {/* Timer */}
+          <span className="font-label min-w-[34px] text-right text-[8px] tracking-[0.18em] text-white/40 sm:text-[9px]">
+            {formatTime(
+              Math.max(
+                0,
+                Math.ceil(LOADER_DURATION - (progress / 100) * LOADER_DURATION),
+              ),
+            )}
+          </span>
+
+          {/* Skip */}
+          <motion.button
+            type="button"
+            onClick={finishLoader}
+            whileHover={{
+              scale: 1.05,
+            }}
+            whileTap={{
+              scale: 0.95,
+            }}
+            className="font-label rounded-full border border-white/15 bg-black/30 px-3 py-1.5 text-[8px] uppercase tracking-[0.18em] text-white/50 backdrop-blur-md transition-colors hover:border-primary/40 hover:text-white sm:px-3.5"
+          >
+            Skip
+          </motion.button>
+        </div>
+      </div>
+
+      {/* Outer frame */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 z-50 ring-1 ring-inset ring-white/[0.06]"
+      />
     </motion.div>
   );
 }
 
-/**
- * Spotlight sweep + stage-floor grid + drifting embers.
- */
-function StageBackdrop({ reducedMotion }) {
-  return (
-    <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
-      <div
-        className="absolute inset-0 opacity-40"
-        style={{
-          backgroundImage:
-            "linear-gradient(var(--color-border-light) 1px, transparent 1px), linear-gradient(90deg, var(--color-border-light) 1px, transparent 1px)",
-          backgroundSize: "56px 56px",
-          maskImage:
-            "radial-gradient(ellipse 70% 60% at 50% 55%, black 0%, transparent 75%)",
-          WebkitMaskImage:
-            "radial-gradient(ellipse 70% 60% at 50% 55%, black 0%, transparent 75%)",
-        }}
-      />
+function formatTime(milliseconds) {
+  const seconds = Math.ceil(milliseconds / 1000);
 
-      {!reducedMotion && (
-        <motion.div
-          animate={{
-            x: ["-30%", "30%", "-30%"],
-            rotate: [0, 6, 0],
-          }}
-          transition={{
-            duration: 7,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-          className="absolute left-1/2 top-[-20%] h-[140%] w-[60%] -translate-x-1/2 opacity-70 blur-[50px]"
-          style={{
-            background:
-              "conic-gradient(from 180deg at 50% 0%, transparent 40%, color-mix(in srgb, var(--color-primary) 22%, transparent) 50%, transparent 60%)",
-          }}
-        />
-      )}
-
-      <motion.div
-        animate={
-          reducedMotion
-            ? undefined
-            : {
-                opacity: [0.15, 0.28, 0.15],
-                scale: [1, 1.08, 1],
-              }
-        }
-        transition={{
-          duration: 6,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-        className="absolute left-1/2 top-1/2 h-[520px] w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[150px]"
-        style={{
-          backgroundColor:
-            "color-mix(in srgb, var(--color-primary) 22%, transparent)",
-        }}
-      />
-
-      {!reducedMotion && <DriftingEmbers />}
-
-      <div className="absolute inset-0 bg-gradient-to-b from-[var(--color-bg)] via-transparent to-[var(--color-bg)]" />
-    </div>
-  );
-}
-
-const EMBER_SEEDS = [
-  { left: "18%", size: 3, duration: 6, delay: 0 },
-  { left: "32%", size: 2, duration: 7.5, delay: 0.6 },
-  { left: "48%", size: 4, duration: 5.5, delay: 1.1 },
-  { left: "63%", size: 2, duration: 8, delay: 0.3 },
-  { left: "77%", size: 3, duration: 6.8, delay: 1.4 },
-  { left: "85%", size: 2, duration: 7, delay: 0.9 },
-];
-
-function DriftingEmbers() {
-  return (
-    <div className="absolute inset-0">
-      {EMBER_SEEDS.map((ember, index) => (
-        <motion.span
-          key={index}
-          className="absolute rounded-full bg-[var(--color-primary)]"
-          style={{
-            left: ember.left,
-            width: ember.size,
-            height: ember.size,
-            bottom: "-5%",
-            boxShadow: "0 0 8px var(--color-primary)",
-          }}
-          animate={{
-            y: ["0%", "-115vh"],
-            opacity: [0, 0.7, 0],
-          }}
-          transition={{
-            duration: ember.duration,
-            repeat: Infinity,
-            ease: "linear",
-            delay: ember.delay,
-          }}
-        />
-      ))}
-    </div>
-  );
+  return `00:${String(seconds).padStart(2, "0")}`;
 }

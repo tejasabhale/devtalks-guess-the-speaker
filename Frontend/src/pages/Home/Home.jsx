@@ -3,6 +3,7 @@ import Landing from "../landing/Landing";
 import Guess from "../guess/Guess";
 import About from "../about/About";
 import SectionDivider from "../../components/common/SectionDivider";
+import EventTeaserVideo from "../../components/teaser/EventTeaserVideo";
 
 const Home = () => {
   return (

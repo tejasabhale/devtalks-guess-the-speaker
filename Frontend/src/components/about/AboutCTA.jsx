@@ -297,7 +297,7 @@ export default function AboutCTA() {
           </motion.a>
 
           <motion.a
-            href="#"
+            href="https://devkraft-2026-27.vercel.app"
             target="_blank"
             rel="noopener noreferrer"
             whileHover={reduceMotion ? {} : { y: -4 }}

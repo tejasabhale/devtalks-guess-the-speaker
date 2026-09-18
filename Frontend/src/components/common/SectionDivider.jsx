@@ -1,38 +1,27 @@
 import { useEffect, useRef, useState } from "react";
 
 /**
- * DevTalks section divider — DevKraft club
+ * DevTalks — Premium Section Divider
  *
- * A themed <hr> replacement for a single-page site where each "page"
- * is a section you scroll past. Drop one between sections:
+ * Visual language:
+ * - Thin asymmetric glow lines
+ * - Animated center node
+ * - Subtle travelling light beam
+ * - Optional section label
+ * - Smooth reveal when entering viewport
+ * - Respects prefers-reduced-motion
  *
- *   <HeroSection />
- *   <SectionDivider fromColor="var(--color-app-bg)" toColor="var(--color-app-bg-secondary)" />
- *   <AboutSection />
- *   <SectionDivider label="Guess the speaker" fromColor="var(--color-app-bg-secondary)" toColor="var(--color-app-bg)" />
- *   <GuessSection />
+ * Usage:
  *
- * Since the sections on either side have different backgrounds, this
- * doesn't paint its own flat color — it gradients from `fromColor`
- * (the section above) to `toColor` (the section below), so it reads
- * as a seam between them instead of a third block of color. Pass the
- * two section colors in; both default to your app-bg tokens.
+ * <SectionDivider />
  *
- * Uses the same @theme tokens as HeroSection (border-border-orange,
- * shadow-orange, --ease-out-expo, etc) — nothing hard-coded.
- *
- * The line draws itself in once, the moment it scrolls into view
- * (IntersectionObserver, no scroll listener running the rest of the time).
- * After that, the center ornament keeps a small audio-equalizer pulse
- * going and a faint beam travels outward from the center on both lines
- * at once — same "still listening" language as the mic in the hero and
- * the loader.
- *
- * Accessibility: the lines, ring, bars, and beam are pure decoration and
- * are aria-hidden individually. When `label` is passed, it's real content
- * (a mini section caption) and stays in the accessibility tree — only the
- * decorative chrome around it is hidden, not the label itself.
+ * <SectionDivider
+ *   label="Guess the speaker"
+ *   fromColor="var(--color-app-bg)"
+ *   toColor="var(--color-app-bg-secondary)"
+ * />
  */
+
 export default function SectionDivider({
   label,
   fromColor = "var(--color-app-bg)",
@@ -42,13 +31,11 @@ export default function SectionDivider({
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    const el = rootRef.current;
-    if (!el) return;
+    const element = rootRef.current;
+    if (!element) return;
 
     const reduceMotion =
-      typeof window !== "undefined" &&
-      window.matchMedia &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
 
     if (reduceMotion) {
       setIsVisible(true);
@@ -57,105 +44,213 @@ export default function SectionDivider({
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-          observer.disconnect();
-        }
+        if (!entry.isIntersecting) return;
+
+        setIsVisible(true);
+        observer.disconnect();
       },
-      { threshold: 0.4 },
+      {
+        threshold: 0.35,
+      },
     );
-    observer.observe(el);
+
+    observer.observe(element);
+
     return () => observer.disconnect();
   }, []);
 
   return (
     <div
       ref={rootRef}
+      className="relative w-full overflow-hidden py-6 sm:py-7 lg:py-8"
       style={{
-        background: `linear-gradient(to bottom, ${fromColor}, ${toColor})`,
+        background: `linear-gradient(180deg, ${fromColor} 0%, ${toColor} 100%)`,
       }}
-      className="devtalks-divider relative flex w-full items-center justify-center py-4"
     >
+      {/* Ambient center glow */}
       <div
         aria-hidden="true"
-        className="relative flex w-full items-center gap-3 px-4 sm:gap-4 sm:px-6"
-      >
-        {/* left line, carries a beam mirrored from the right */}
-        <span
-          className={`devtalks-div-line devtalks-div-line-left relative h-px flex-1 origin-right overflow-visible bg-gradient-to-l from-border-orange to-transparent transition-transform duration-[1100ms] ease-[var(--ease-out-expo)] ${
+        className={`pointer-events-none absolute left-1/2 top-1/2 h-24 w-56 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-3xl transition-opacity duration-1000 ${
+          isVisible ? "opacity-100" : "opacity-0"
+        }`}
+      />
+
+      <div className="relative mx-auto flex w-full max-w-[1400px] items-center px-4 sm:px-8 lg:px-12 xl:px-16">
+        {/* LEFT LINE */}
+        <div
+          aria-hidden="true"
+          className={`relative h-px flex-1 origin-right bg-gradient-to-l from-primary/50 via-border-orange/40 to-transparent transition-transform duration-[1200ms] ease-[var(--ease-out-expo)] ${
             isVisible ? "scale-x-100" : "scale-x-0"
           }`}
         >
-          {isVisible && (
-            <span className="devtalks-div-beam devtalks-div-beam-left absolute top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-primary-light shadow-orange" />
-          )}
-        </span>
+          {/* Secondary hairline */}
+          <span className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-gradient-to-l from-border/30 to-transparent" />
 
-        {/* center ornament: a lit node inside a pulsing ring */}
-        <div className="relative flex shrink-0 items-center justify-center">
+          {/* Travelling beam */}
+          {isVisible && (
+            <span
+              aria-hidden="true"
+              className="devtalks-divider-beam-left absolute top-1/2 h-1 w-1 -translate-y-1/2 rounded-full bg-primary-light shadow-[0_0_14px_rgba(255,122,69,0.9)]"
+            />
+          )}
+        </div>
+
+        {/* CENTER MARK */}
+        <div className="relative mx-4 flex shrink-0 items-center justify-center sm:mx-6 lg:mx-8">
+          {/* Outer pulse ring */}
           <span
-            className={`devtalks-div-ring absolute h-8 w-8 rounded-full border border-border-orange transition-opacity duration-700 ${
-              isVisible ? "opacity-100" : "opacity-0"
+            aria-hidden="true"
+            className={`absolute h-10 w-10 rounded-full border border-primary/20 transition-all duration-700 ${
+              isVisible ? "scale-100 opacity-100" : "scale-50 opacity-0"
             }`}
           />
+
+          {/* Secondary ring */}
           <span
-            className={`relative h-6 w-6 rounded-full border border-border-orange bg-primary/10 shadow-orange transition-all duration-500 ease-out ${
-              isVisible ? "scale-100 opacity-100" : "scale-50 opacity-0"
+            aria-hidden="true"
+            className={`absolute h-7 w-7 rounded-full border border-border-orange/50 transition-all duration-500 ${
+              isVisible ? "scale-100 opacity-100" : "scale-75 opacity-0"
+            }`}
+          />
+
+          {/* Core */}
+          <span
+            aria-hidden="true"
+            className={`relative flex h-4 w-4 rotate-45 items-center justify-center border border-primary/70 bg-primary/20 shadow-[0_0_20px_rgba(255,90,31,0.35)] transition-all duration-500 ${
+              isVisible ? "scale-100 opacity-100" : "scale-0 opacity-0"
+            }`}
+          >
+            <span className="h-1.5 w-1.5 bg-primary-light" />
+          </span>
+
+          {/* Tiny vertical accent */}
+          <span
+            aria-hidden="true"
+            className={`absolute top-1/2 h-12 w-px -translate-y-1/2 bg-gradient-to-b from-transparent via-primary/40 to-transparent transition-opacity duration-700 ${
+              isVisible ? "opacity-100" : "opacity-0"
             }`}
           />
         </div>
 
-        {/* right line, carries the traveling beam */}
-        <span
-          className={`devtalks-div-line devtalks-div-line-right relative h-px flex-1 origin-left overflow-visible bg-gradient-to-r from-border-orange to-transparent transition-transform duration-[1100ms] ease-[var(--ease-out-expo)] ${
+        {/* RIGHT LINE */}
+        <div
+          aria-hidden="true"
+          className={`relative h-px flex-1 origin-left bg-gradient-to-r from-primary/50 via-border-orange/40 to-transparent transition-transform duration-[1200ms] ease-[var(--ease-out-expo)] ${
             isVisible ? "scale-x-100" : "scale-x-0"
           }`}
         >
+          {/* Secondary hairline */}
+          <span className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-gradient-to-r from-border/30 to-transparent" />
+
+          {/* Travelling beam */}
           {isVisible && (
-            <span className="devtalks-div-beam devtalks-div-beam-right absolute top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-primary-light shadow-orange" />
+            <span
+              aria-hidden="true"
+              className="devtalks-divider-beam-right absolute top-1/2 h-1 w-1 -translate-y-1/2 rounded-full bg-primary-light shadow-[0_0_14px_rgba(255,122,69,0.9)]"
+            />
           )}
-        </span>
+        </div>
       </div>
 
+      {/* Optional label */}
       {label && (
-        <span
-          className={`absolute left-1/2 top-1/2 -translate-x-1/2 whitespace-nowrap font-mono text-[10px] uppercase tracking-[0.2em] text-text-muted transition-all duration-700 delay-300 ${
-            isVisible
-              ? "-translate-y-[calc(50%+1.35rem)] opacity-100"
-              : "-translate-y-[calc(50%+0.95rem)] opacity-0"
+        <div
+          className={`absolute left-1/2 top-1/2 -translate-x-1/2 translate-y-5 transition-all delay-200 duration-700 sm:translate-y-6 ${
+            isVisible ? "opacity-100" : "translate-y-3 opacity-0"
           }`}
         >
-          {label}
-        </span>
+          <span className="inline-flex items-center gap-2 rounded-full border border-border-orange/40 bg-app-bg/70 px-3 py-1 backdrop-blur-md">
+            <span
+              aria-hidden="true"
+              className="h-1.5 w-1.5 rounded-full bg-primary-light shadow-[0_0_8px_rgba(255,122,69,0.8)]"
+            />
+
+            <span className="font-label text-[9px] font-medium uppercase tracking-[0.22em] text-text-muted sm:text-[10px]">
+              {label}
+            </span>
+          </span>
+        </div>
       )}
 
       <style>{`
-        @keyframes devtalks-div-ring-pulse {
-          0%   { transform: scale(0.85); opacity: 0.7; }
-          100% { transform: scale(1.35); opacity: 0; }
-        }
-        .devtalks-div-ring { animation: devtalks-div-ring-pulse 2.4s ease-out infinite; }
+        /* Right-side beam */
+        @keyframes devtalks-divider-beam-right {
+          0% {
+            left: 0%;
+            opacity: 0;
+            transform: translateY(-50%) scale(0.7);
+          }
 
-        @keyframes devtalks-div-beam {
-          0%   { left: 0%;   opacity: 0; }
-          10%  { opacity: 1; }
-          90%  { opacity: 1; }
-          100% { left: 100%; opacity: 0; }
-        }
-        .devtalks-div-beam-right { animation: devtalks-div-beam 3.2s ease-in-out infinite; animation-delay: 1.1s; }
+          10% {
+            opacity: 1;
+          }
 
-        @keyframes devtalks-div-beam-left {
-          0%   { left: 100%; opacity: 0; }
-          10%  { opacity: 1; }
-          90%  { opacity: 1; }
-          100% { left: 0%;   opacity: 0; }
+          50% {
+            transform: translateY(-50%) scale(1);
+          }
+
+          90% {
+            opacity: 1;
+          }
+
+          100% {
+            left: 100%;
+            opacity: 0;
+            transform: translateY(-50%) scale(0.7);
+          }
         }
-        .devtalks-div-beam-left { animation: devtalks-div-beam-left 3.2s ease-in-out infinite; animation-delay: 1.1s; }
+
+        /* Left-side beam */
+        @keyframes devtalks-divider-beam-left {
+          0% {
+            right: 0%;
+            opacity: 0;
+            transform: translateY(-50%) scale(0.7);
+          }
+
+          10% {
+            opacity: 1;
+          }
+
+          50% {
+            transform: translateY(-50%) scale(1);
+          }
+
+          90% {
+            opacity: 1;
+          }
+
+          100% {
+            right: 100%;
+            opacity: 0;
+            transform: translateY(-50%) scale(0.7);
+          }
+        }
+
+        .devtalks-divider-beam-right {
+          animation: devtalks-divider-beam-right 3.8s
+            cubic-bezier(0.4, 0, 0.2, 1) infinite;
+          animation-delay: 0.8s;
+        }
+
+        .devtalks-divider-beam-left {
+          animation: devtalks-divider-beam-left 3.8s
+            cubic-bezier(0.4, 0, 0.2, 1) infinite;
+          animation-delay: 0.8s;
+        }
+
+        @media (max-width: 640px) {
+          .devtalks-divider-beam-right,
+          .devtalks-divider-beam-left {
+            animation-duration: 4.5s;
+          }
+        }
 
         @media (prefers-reduced-motion: reduce) {
-          .devtalks-div-ring, .devtalks-div-beam-left, .devtalks-div-beam-right {
-            animation-duration: 0.01ms !important;
-            animation-iteration-count: 1 !important;
+          .devtalks-divider-beam-right,
+          .devtalks-divider-beam-left {
+            animation: none !important;
+            opacity: 0 !important;
           }
         }
       `}</style>

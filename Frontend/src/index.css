@@ -1,4 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+
 @import "tailwindcss";
 
 @theme {
@@ -92,7 +93,6 @@
 }
 
 html {
-  scroll-behavior: smooth;
   background: var(--color-bg);
   font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
 }
@@ -101,6 +101,7 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+
   background: var(--color-bg);
   color: var(--color-text-primary);
 
@@ -155,6 +156,35 @@ a {
   color: var(--color-text-primary);
 }
 
+/* =========================
+   LENIS SMOOTH SCROLL
+   ========================= */
+
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}
+
+/* =========================
+   SCROLLBAR
+   ========================= */
+
 ::-webkit-scrollbar {
   width: 7px;
 }
@@ -171,6 +201,10 @@ a {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-primary);
 }
+
+/* =========================
+   GLASS EFFECTS
+   ========================= */
 
 .glass {
   background: var(--color-surface);
@@ -193,6 +227,10 @@ a {
   -webkit-backdrop-filter: blur(16px);
 }
 
+/* =========================
+   TEXT
+   ========================= */
+
 .text-gradient {
   background: linear-gradient(
     135deg,
@@ -205,6 +243,10 @@ a {
   background-clip: text;
   color: transparent;
 }
+
+/* =========================
+   BACKGROUNDS
+   ========================= */
 
 .bg-radial-orange {
   background:
@@ -222,6 +264,10 @@ a {
     linear-gradient(180deg, #080808 0%, #0b0b0b 50%, #050505 100%);
 }
 
+/* =========================
+   ACCESSIBILITY
+   ========================= */
+
 :focus-visible {
   outline: 2px solid var(--color-primary-light);
   outline-offset: 3px;
@@ -237,6 +283,10 @@ a {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* =========================
+   MOBILE
+   ========================= */
 
 @media (max-width: 640px) {
   :root {

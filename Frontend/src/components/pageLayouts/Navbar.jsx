@@ -10,6 +10,15 @@ const NAV_LINKS = [
 
 const EASE = [0.16, 1, 0.3, 1];
 
+// Scroll distance (px) the pointer has to move in one direction before
+// the navbar reacts. Filters out the tiny back-and-forth jitter some
+// trackpads/mobile browsers report on every frame.
+const SCROLL_DIRECTION_THRESHOLD = 4;
+
+// Below this scroll position the navbar always stays visible, even if
+// the page reports a small downward delta (e.g. rubber-band bounce).
+const ALWAYS_VISIBLE_BELOW = 80;
+
 /*
  * DevTalks brand font:
  * Sora 800 -> DevTalks wordmark
@@ -56,6 +65,12 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState("home");
 
+  // Hide-on-scroll-down / show-on-scroll-up state for the whole
+  // fixed header. `lastScrollYRef` tracks the previous scroll
+  // position between frames without triggering re-renders itself.
+  const [isNavHidden, setIsNavHidden] = useState(false);
+  const lastScrollYRef = useRef(0);
+
   const menuRef = useRef(null);
   const toggleRef = useRef(null);
 
@@ -69,11 +84,26 @@ export default function Navbar() {
   }, [pathname, hash]);
 
   /*
-   * Navbar scroll state.
+   * Navbar scroll state: the frosted/scrolled look, plus the
+   * hide-down / show-up direction logic, off a single listener.
    */
   useEffect(() => {
     function handleScroll() {
-      setIsScrolled(window.scrollY > 8);
+      const currentY = window.scrollY;
+
+      setIsScrolled(currentY > 8);
+
+      const delta = currentY - lastScrollYRef.current;
+
+      if (currentY < ALWAYS_VISIBLE_BELOW) {
+        setIsNavHidden(false);
+      } else if (delta > SCROLL_DIRECTION_THRESHOLD) {
+        setIsNavHidden(true);
+      } else if (delta < -SCROLL_DIRECTION_THRESHOLD) {
+        setIsNavHidden(false);
+      }
+
+      lastScrollYRef.current = currentY;
     }
 
     handleScroll();
@@ -86,6 +116,17 @@ export default function Navbar() {
       window.removeEventListener("scroll", handleScroll);
     };
   }, []);
+
+  /*
+   * Never hide the header while the mobile menu is open — the menu
+   * IS the header's expanded state, so it must stay put regardless
+   * of whatever scroll direction got recorded right before it opened.
+   */
+  useEffect(() => {
+    if (isMenuOpen) {
+      setIsNavHidden(false);
+    }
+  }, [isMenuOpen]);
 
   /*
    * Scroll spy.
@@ -268,11 +309,11 @@ export default function Navbar() {
           opacity: 0,
         }}
         animate={{
-          y: 0,
+          y: !isMenuOpen && isNavHidden ? "-100%" : "0%",
           opacity: 1,
         }}
         transition={{
-          duration: 0.6,
+          duration: 0.45,
           ease: EASE,
         }}
         className="fixed left-0 right-0 top-0 z-50"
@@ -287,7 +328,7 @@ export default function Navbar() {
         >
           <div
             className={`relative mx-auto flex max-w-7xl items-center justify-between px-4 transition-[height] duration-300 sm:px-6 lg:px-8 ${
-              isScrolled ? "h-14" : "h-16"
+              isScrolled ? "h-16" : "h-20"
             }`}
           >
             <Logo onNavigate={() => handleNavClick(NAV_LINKS[0])} />
@@ -472,7 +513,7 @@ function Logo({ onNavigate }) {
       <img
         src="/logo/devkraft.png"
         alt="DevTalks"
-        className="h-8 w-auto object-contain drop-shadow-[0_0_10px_rgba(0,0,0,0.35)] transition-opacity duration-200 group-hover:opacity-90"
+        className="h-9 w-auto object-contain drop-shadow-[0_0_10px_rgba(0,0,0,0.35)] transition-opacity duration-200 group-hover:opacity-90"
       />
 
       {/* Desktop wordmark */}

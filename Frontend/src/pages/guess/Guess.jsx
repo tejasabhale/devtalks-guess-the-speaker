@@ -1,12 +1,14 @@
 import GuessHero from "../../components/guess/GuessHero";
-import GuessSpeakers from "../../components/guess/GuessSpeaker";
-import './guess.css'
+import SpeakerReveal from "../../components/guess/SpeakerReveal";
+import SpeakerTeaserReveal from "../../components/guess/SpeakerTeaserReveal";
+import "./guess.css";
 
 export default function Guess() {
   return (
     <main className="bg-app-bg" id="guess">
       <GuessHero />
-      <GuessSpeakers />
+      <SpeakerTeaserReveal />
+      <SpeakerReveal />
     </main>
   );
 }

@@ -1,4 +1,9 @@
+import { useEffect, useRef } from "react";
 import { motion, useReducedMotion } from "framer-motion";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(ScrollTrigger);
 
 const FEATURES = [
   ["01", "TALKS"],
@@ -8,117 +13,456 @@ const FEATURES = [
 ];
 
 const NODES = [
-  { top: "18%", left: "9%", delay: 0 },
-  { top: "31%", left: "86%", delay: 1.4 },
-  { top: "56%", left: "94%", delay: 2.6 },
-  { top: "76%", left: "12%", delay: 3.8 },
-  { top: "82%", left: "72%", delay: 4.8 },
-  { top: "14%", left: "62%", delay: 2.1 },
+  { top: "16%", left: "8%", delay: 0 },
+  { top: "28%", left: "90%", delay: 1.2 },
+  { top: "68%", left: "8%", delay: 2.4 },
+  { top: "80%", left: "88%", delay: 3.4 },
+  { top: "12%", left: "64%", delay: 2 },
 ];
+
+function useDevTalksScrollAnimation(sectionRef, reduceMotion) {
+  useEffect(() => {
+    if (reduceMotion) return;
+
+    const section = sectionRef.current;
+
+    if (!section) return;
+
+    const ctx = gsap.context(() => {
+      const left = section.querySelector("[data-devtalks-left]");
+      const right = section.querySelector("[data-devtalks-right]");
+      const eyebrow = section.querySelector("[data-devtalks-eyebrow]");
+      const heading = section.querySelector("[data-devtalks-heading]");
+      const copy = gsap.utils.toArray("[data-devtalks-copy]", section);
+      const cards = gsap.utils.toArray("[data-devtalk-card]", section);
+
+      const glow = section.querySelector("[data-devtalks-glow]");
+      const ghost = section.querySelector("[data-devtalks-ghost]");
+      const ring = section.querySelector("[data-devtalks-ring]");
+      const grid = section.querySelector("[data-devtalks-grid]");
+
+      if (!left || !right) return;
+
+      /*
+       * Initial state
+       */
+      gsap.set(left, {
+        x: -70,
+        y: 35,
+        opacity: 0,
+        filter: "blur(10px)",
+      });
+
+      gsap.set(right, {
+        x: 70,
+        y: 35,
+        opacity: 0,
+        filter: "blur(10px)",
+      });
+
+      gsap.set(cards, {
+        y: 35,
+        opacity: 0,
+        scale: 0.96,
+      });
+
+      if (eyebrow) {
+        gsap.set(eyebrow, {
+          opacity: 0,
+          x: -20,
+        });
+      }
+
+      if (heading) {
+        gsap.set(heading, {
+          opacity: 0,
+          y: 28,
+          scale: 0.97,
+          filter: "blur(8px)",
+        });
+      }
+
+      if (copy.length) {
+        gsap.set(copy, {
+          opacity: 0,
+          y: 18,
+        });
+      }
+
+      /*
+       * One continuous scroll timeline.
+       */
+      const timeline = gsap.timeline({
+        scrollTrigger: {
+          trigger: section,
+          start: "top 92%",
+          end: "bottom 8%",
+          scrub: 0.75,
+          invalidateOnRefresh: true,
+        },
+      });
+
+      /*
+       * ---------------------------------------------------------
+       * 1. REVEAL
+       * ---------------------------------------------------------
+       */
+
+      if (eyebrow) {
+        timeline.to(
+          eyebrow,
+          {
+            opacity: 1,
+            x: 0,
+            ease: "none",
+            duration: 0.08,
+          },
+          0,
+        );
+      }
+
+      timeline
+        .to(
+          left,
+          {
+            x: 0,
+            y: 0,
+            opacity: 1,
+            filter: "blur(0px)",
+            ease: "none",
+            duration: 0.24,
+          },
+          0.02,
+        )
+        .to(
+          right,
+          {
+            x: 0,
+            y: 0,
+            opacity: 1,
+            filter: "blur(0px)",
+            ease: "none",
+            duration: 0.24,
+          },
+          0.05,
+        );
+
+      if (heading) {
+        timeline.to(
+          heading,
+          {
+            opacity: 1,
+            y: 0,
+            scale: 1,
+            filter: "blur(0px)",
+            ease: "none",
+            duration: 0.16,
+          },
+          0.12,
+        );
+      }
+
+      if (copy.length) {
+        timeline.to(
+          copy,
+          {
+            opacity: 1,
+            y: 0,
+            ease: "none",
+            stagger: 0.035,
+            duration: 0.1,
+          },
+          0.18,
+        );
+      }
+
+      if (cards.length) {
+        timeline.to(
+          cards,
+          {
+            opacity: 1,
+            y: 0,
+            scale: 1,
+            ease: "none",
+            stagger: 0.035,
+            duration: 0.16,
+          },
+          0.16,
+        );
+      }
+
+      /*
+       * ---------------------------------------------------------
+       * 2. UNIFIED MOMENT
+       * ---------------------------------------------------------
+       *
+       * Both columns move together for a moment.
+       */
+      timeline
+        .to(
+          left,
+          {
+            y: -18,
+            ease: "none",
+            duration: 0.14,
+          },
+          0.34,
+        )
+        .to(
+          right,
+          {
+            y: -18,
+            ease: "none",
+            duration: 0.14,
+          },
+          0.34,
+        );
+
+      /*
+       * ---------------------------------------------------------
+       * 3. CONTINUOUS DEPTH
+       * ---------------------------------------------------------
+       */
+
+      timeline
+        .to(
+          left,
+          {
+            x: -18,
+            y: -75,
+            ease: "none",
+            duration: 0.54,
+          },
+          0.48,
+        )
+        .to(
+          right,
+          {
+            x: 18,
+            y: -45,
+            ease: "none",
+            duration: 0.54,
+          },
+          0.48,
+        );
+
+      if (heading) {
+        timeline.to(
+          heading,
+          {
+            y: -35,
+            scale: 0.975,
+            ease: "none",
+            duration: 0.54,
+          },
+          0.48,
+        );
+      }
+
+      if (cards.length) {
+        cards.forEach((card, index) => {
+          timeline.to(
+            card,
+            {
+              y: -(10 + index * 7),
+              rotateZ: index % 2 === 0 ? -0.5 : 0.5,
+              ease: "none",
+              duration: 0.54,
+            },
+            0.48,
+          );
+        });
+      }
+
+      /*
+       * ---------------------------------------------------------
+       * 4. SUBTLE BACKGROUND MOTION
+       * ---------------------------------------------------------
+       */
+
+      if (glow) {
+        timeline.to(
+          glow,
+          {
+            x: 45,
+            y: -50,
+            scale: 1.18,
+            opacity: 0.72,
+            ease: "none",
+            duration: 1,
+          },
+          0,
+        );
+      }
+
+      if (ghost) {
+        timeline.to(
+          ghost,
+          {
+            x: -35,
+            y: -55,
+            opacity: 0.055,
+            scale: 1.04,
+            ease: "none",
+            duration: 1,
+          },
+          0,
+        );
+      }
+
+      if (ring) {
+        timeline.to(
+          ring,
+          {
+            rotation: 24,
+            scale: 1.08,
+            xPercent: 4,
+            yPercent: -3,
+            ease: "none",
+            duration: 1,
+          },
+          0,
+        );
+      }
+
+      if (grid) {
+        timeline.to(
+          grid,
+          {
+            y: -25,
+            x: 20,
+            ease: "none",
+            duration: 1,
+          },
+          0,
+        );
+      }
+
+      /*
+       * ---------------------------------------------------------
+       * 5. EXIT
+       * ---------------------------------------------------------
+       */
+
+      timeline
+        .to(
+          left,
+          {
+            y: -105,
+            x: -28,
+            opacity: 0.82,
+            ease: "none",
+            duration: 0.18,
+          },
+          0.86,
+        )
+        .to(
+          right,
+          {
+            y: -72,
+            x: 28,
+            opacity: 0.82,
+            ease: "none",
+            duration: 0.18,
+          },
+          0.86,
+        );
+
+      requestAnimationFrame(() => {
+        ScrollTrigger.refresh();
+      });
+    }, sectionRef);
+
+    return () => {
+      ctx.revert();
+    };
+  }, [sectionRef, reduceMotion]);
+}
 
 export default function AboutDevTalks() {
   const reduceMotion = useReducedMotion();
+  const sectionRef = useRef(null);
+
+  useDevTalksScrollAnimation(sectionRef, Boolean(reduceMotion));
 
   return (
     <section
+      ref={sectionRef}
       id="devtalks"
-      className="relative overflow-hidden border-y border-[var(--color-border)] bg-[#050505] px-5 py-20 sm:px-8 sm:py-28 lg:px-10"
+      className="relative flex min-h-[100svh] w-full items-center overflow-hidden border-y border-[var(--color-border)] bg-[#030303] px-5 py-16 sm:px-8 sm:py-20 lg:px-10"
     >
-      {/* Background */}
+      {/* =========================================================
+          MINIMAL BACKGROUND
+      ========================================================== */}
+
       <div
         className="pointer-events-none absolute inset-0 overflow-hidden"
         aria-hidden="true"
       >
-        {/* Fine noise-like dots */}
+        {/* Very subtle central glow */}
         <div
-          className="absolute inset-0 opacity-[0.028]"
+          data-devtalks-glow
+          className="absolute left-[22%] top-[28%] h-[28rem] w-[28rem] rounded-full bg-[radial-gradient(circle,rgba(255,90,31,0.085),transparent_68%)] opacity-55 blur-3xl will-change-transform"
+        />
+
+        {/* Tiny dot field */}
+        <div
+          className="absolute inset-0 opacity-[0.022]"
           style={{
             backgroundImage: `
               radial-gradient(
                 circle at 1px 1px,
-                rgba(244, 240, 232, 0.8) 0.8px,
-                transparent 0.9px
+                rgba(244,240,232,0.9) 0.7px,
+                transparent 0.8px
               )
             `,
-            backgroundSize: "24px 24px",
+            backgroundSize: "30px 30px",
           }}
         />
 
-        {/* Technical diagonal texture */}
-        <motion.div
-          className="absolute -inset-[20%] opacity-[0.025]"
-          animate={
-            reduceMotion
-              ? {}
-              : {
-                  backgroundPosition: ["0px 0px", "120px 80px", "0px 0px"],
-                }
-          }
-          transition={
-            reduceMotion
-              ? {}
-              : {
-                  duration: 30,
-                  repeat: Infinity,
-                  ease: "linear",
-                }
-          }
+        {/* Minimal grid */}
+        <div
+          data-devtalks-grid
+          className="absolute -inset-[20%] opacity-[0.028] will-change-transform"
           style={{
             backgroundImage: `
-              repeating-linear-gradient(
-                135deg,
-                transparent 0px,
-                transparent 46px,
-                rgba(255, 90, 31, 0.5) 47px,
-                transparent 48px
+              linear-gradient(
+                rgba(255,90,31,0.18) 1px,
+                transparent 1px
+              ),
+              linear-gradient(
+                90deg,
+                rgba(255,90,31,0.18) 1px,
+                transparent 1px
               )
             `,
-            backgroundSize: "140px 140px",
+            backgroundSize: "110px 110px",
+            transform: "perspective(900px) rotateX(65deg) scale(1.5)",
+            transformOrigin: "center center",
           }}
         />
 
-        {/* Connected network lines */}
-        <svg
-          className="absolute inset-0 h-full w-full opacity-[0.12]"
-          viewBox="0 0 1200 700"
-          preserveAspectRatio="none"
+        {/* Ghost section number */}
+        <div
+          data-devtalks-ghost
+          className="absolute right-[-2%] top-[12%] select-none font-mono text-[18rem] font-bold leading-none tracking-[-0.12em] text-white/[0.025] will-change-transform sm:text-[24rem]"
         >
-          <path
-            d="M0 160 C180 120 240 240 390 190 S650 110 790 190 S1030 280 1200 170"
-            fill="none"
-            stroke="rgba(255,90,31,0.16)"
-            strokeWidth="1"
-            strokeDasharray="4 10"
-          />
+          02
+        </div>
 
-          <path
-            d="M0 520 C170 460 290 540 430 470 S690 390 850 480 S1050 540 1200 430"
-            fill="none"
-            stroke="rgba(244,240,232,0.08)"
-            strokeWidth="1"
-            strokeDasharray="3 12"
-          />
+        {/* One soft orbital line */}
+        <div
+          data-devtalks-ring
+          className="absolute left-[62%] top-1/2 h-[34rem] w-[34rem] -translate-x-1/2 -translate-y-1/2 rounded-full border border-[var(--color-primary)]/[0.055] will-change-transform sm:h-[46rem] sm:w-[46rem]"
+        >
+          <span className="absolute left-[8%] top-[16%] h-1.5 w-1.5 rounded-full bg-[var(--color-primary)] opacity-70 shadow-[0_0_12px_var(--color-primary)]" />
+        </div>
 
-          <path
-            d="M120 0 C190 130 150 240 220 350 S300 560 360 700"
-            fill="none"
-            stroke="rgba(255,90,31,0.08)"
-            strokeWidth="1"
-          />
-
-          <path
-            d="M940 0 C880 130 960 230 900 350 S850 560 790 700"
-            fill="none"
-            stroke="rgba(255,90,31,0.07)"
-            strokeWidth="1"
-          />
-        </svg>
-
-        {/* Accent nodes */}
+        {/* Small floating nodes */}
         {NODES.map((node, index) => (
-          <motion.div
+          <motion.span
             key={index}
-            className="absolute"
+            className="absolute h-1 w-1 rounded-full bg-[var(--color-primary)]"
             style={{
               top: node.top,
               left: node.left,
@@ -127,182 +471,133 @@ export default function AboutDevTalks() {
               reduceMotion
                 ? {}
                 : {
-                    opacity: [0.2, 0.65, 0.2],
+                    opacity: [0.1, 0.38, 0.1],
+                    scale: [0.8, 1.3, 0.8],
                   }
             }
             transition={
               reduceMotion
                 ? {}
                 : {
-                    duration: 3.5,
+                    duration: 4,
                     delay: node.delay,
                     repeat: Infinity,
                     ease: "easeInOut",
                   }
             }
-          >
-            <span className="block h-1.5 w-1.5 rounded-full bg-[var(--color-primary)]" />
-            <span className="absolute left-1/2 top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full border border-[var(--color-primary)]/20" />
-          </motion.div>
+          />
         ))}
 
-        {/* Traveling signal */}
-        {!reduceMotion && (
-          <>
-            <motion.div
-              className="absolute left-[-15%] top-[27%] h-px w-[260px] bg-gradient-to-r from-transparent via-[var(--color-primary)]/50 to-transparent"
-              animate={{
-                x: ["0%", "520%"],
-                opacity: [0, 0.5, 0],
-              }}
-              transition={{
-                duration: 11,
-                repeat: Infinity,
-                repeatDelay: 2,
-                ease: "linear",
-              }}
-            />
+        {/* Edge accents */}
+        <div className="absolute left-6 top-7 h-8 w-8 border-l border-t border-[var(--color-primary)]/[0.10] sm:left-8" />
 
-            <motion.div
-              className="absolute right-[-15%] top-[68%] h-px w-[220px] bg-gradient-to-r from-transparent via-[var(--color-primary-light)]/35 to-transparent"
-              animate={{
-                x: ["0%", "-580%"],
-                opacity: [0, 0.35, 0],
-              }}
-              transition={{
-                duration: 13,
-                repeat: Infinity,
-                repeatDelay: 3,
-                ease: "linear",
-              }}
-            />
-          </>
-        )}
+        <div className="absolute right-6 top-7 h-8 w-8 border-r border-t border-[var(--color-primary)]/[0.10] sm:right-8" />
 
-        {/* Top and bottom accent cuts */}
-        <div className="absolute left-1/2 top-0 h-px w-[65%] -translate-x-1/2 bg-gradient-to-r from-transparent via-[var(--color-border-orange)] to-transparent opacity-60" />
+        <div className="absolute bottom-7 left-6 h-8 w-8 border-b border-l border-[var(--color-primary)]/[0.08] sm:left-8" />
 
-        <div className="absolute bottom-0 left-1/2 h-px w-[55%] -translate-x-1/2 bg-gradient-to-r from-transparent via-[var(--color-border)] to-transparent" />
+        <div className="absolute bottom-7 right-6 h-8 w-8 border-b border-r border-[var(--color-primary)]/[0.08] sm:right-8" />
 
-        {/* Corner brackets */}
-        <div className="absolute left-5 top-8 h-8 w-8 border-l border-t border-[var(--color-primary)]/10 sm:left-8" />
-        <div className="absolute right-5 top-8 h-8 w-8 border-r border-t border-[var(--color-primary)]/10 sm:right-8" />
-        <div className="absolute bottom-8 left-5 h-8 w-8 border-b border-l border-[var(--color-primary)]/10 sm:left-8" />
-        <div className="absolute bottom-8 right-5 h-8 w-8 border-b border-r border-[var(--color-primary)]/10 sm:right-8" />
+        <div className="absolute left-1/2 top-0 h-px w-[58%] -translate-x-1/2 bg-gradient-to-r from-transparent via-[var(--color-primary)]/[0.25] to-transparent" />
       </div>
 
-      <div className="relative z-10 mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:gap-20">
-        {/* Left */}
-        <motion.div
-          initial={{
-            opacity: 0,
-            x: reduceMotion ? 0 : -30,
-          }}
-          whileInView={{
-            opacity: 1,
-            x: 0,
-          }}
-          viewport={{
-            once: true,
-            amount: 0.25,
-          }}
-          transition={{
-            duration: 0.7,
-            ease: [0.16, 1, 0.3, 1],
-          }}
-        >
-          <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-[var(--color-primary)] sm:text-xs">
-            02 / DEVTALKS
-          </span>
+      {/* =========================================================
+          CONTENT
+      ========================================================== */}
 
-          <h2 className="mt-4 text-4xl font-bold tracking-tight text-[var(--color-text-primary)] sm:text-5xl lg:text-6xl">
+      <div className="relative z-10 mx-auto grid min-h-[calc(100svh-4rem)] w-full max-w-7xl items-center gap-12 sm:min-h-[calc(100svh-5rem)] sm:gap-14 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 xl:gap-24">
+        {/* LEFT */}
+        <div data-devtalks-left className="will-change-transform">
+          <div data-devtalks-eyebrow className="flex items-center gap-3">
+            <span className="h-px w-8 bg-[var(--color-primary)]" />
+
+            <span className="font-mono text-[9px] uppercase tracking-[0.24em] text-[var(--color-primary)] sm:text-[10px]">
+              02 / DEVTALKS
+            </span>
+          </div>
+
+          <h2
+            data-devtalks-heading
+            className="mt-5 max-w-3xl text-[2.8rem] font-semibold leading-[0.98] tracking-[-0.045em] text-[var(--color-text-primary)] sm:text-5xl md:text-6xl lg:text-[4.2rem]"
+          >
             Where ideas
             <span className="block text-[var(--color-primary)]">
               meet people.
             </span>
           </h2>
 
-          <p className="mt-6 max-w-2xl text-base leading-relaxed text-[var(--color-text-secondary)] sm:text-lg">
-            DevTalks is an experience created by DevKraft Club to bring
-            developers, creators, professionals, and students together around
-            technology.
-          </p>
+          <div className="mt-6 h-px w-16 bg-[var(--color-primary)]/[0.65] sm:mt-7" />
 
-          <p className="mt-5 max-w-2xl text-sm leading-relaxed text-[var(--color-text-muted)] sm:text-base">
-            It is a space to listen to people building in the real world,
-            discover new perspectives, ask better questions, and leave with
-            ideas worth building.
-          </p>
-        </motion.div>
-
-        {/* Right */}
-        <motion.div
-          initial={{
-            opacity: 0,
-            y: reduceMotion ? 0 : 25,
-          }}
-          whileInView={{
-            opacity: 1,
-            y: 0,
-          }}
-          viewport={{
-            once: true,
-            amount: 0.25,
-          }}
-          transition={{
-            duration: 0.7,
-            delay: 0.1,
-            ease: [0.16, 1, 0.3, 1],
-          }}
-          className="grid grid-cols-2 gap-3"
-        >
-          {FEATURES.map(([number, title], index) => (
-            <motion.div
-              key={number}
-              whileHover={
-                reduceMotion
-                  ? {}
-                  : {
-                      y: -4,
-                    }
-              }
-              transition={{ duration: 0.25 }}
-              className="group relative overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[#0a0a0a] p-5 transition-colors duration-300 hover:border-[var(--color-border-orange)] sm:p-7"
+          <div className="max-w-2xl">
+            <p
+              data-devtalks-copy
+              className="mt-6 text-base leading-relaxed text-[var(--color-text-secondary)] sm:text-lg"
             >
-              {/* Card scan line */}
+              DevTalks is an experience created by DevKraft Club to bring
+              developers, creators, professionals, and students together around
+              technology.
+            </p>
+
+            <p
+              data-devtalks-copy
+              className="mt-4 text-sm leading-relaxed text-[var(--color-text-muted)] sm:text-base"
+            >
+              It is a space to listen to people building in the real world,
+              discover new perspectives, ask better questions, and leave with
+              ideas worth building.
+            </p>
+          </div>
+        </div>
+
+        {/* RIGHT */}
+        <div data-devtalks-right className="w-full will-change-transform">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4">
+            {FEATURES.map(([number, title], index) => (
               <motion.div
-                className="pointer-events-none absolute left-0 top-0 h-px w-full origin-left bg-[var(--color-primary)] opacity-0"
-                initial={{ scaleX: 0 }}
+                key={number}
+                data-devtalk-card
                 whileHover={
                   reduceMotion
                     ? {}
                     : {
-                        scaleX: 1,
-                        opacity: 0.7,
+                        y: -6,
+                        scale: 1.02,
                       }
                 }
-                transition={{ duration: 0.35 }}
-              />
+                transition={{
+                  duration: 0.25,
+                }}
+                className="group relative min-h-[145px] overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[#090909] p-5 transition-colors duration-300 hover:border-[var(--color-border-orange)] sm:min-h-[175px] sm:p-6"
+              >
+                {/* Top line */}
+                <span className="pointer-events-none absolute left-0 top-0 h-px w-full origin-left scale-x-0 bg-gradient-to-r from-transparent via-[var(--color-primary)] to-transparent opacity-0 transition-all duration-300 group-hover:scale-x-100 group-hover:opacity-100" />
 
-              {/* Corner detail */}
-              <div className="absolute right-4 top-4 h-3 w-3 border-r border-t border-[var(--color-border)] transition-colors duration-300 group-hover:border-[var(--color-border-orange)]" />
+                {/* Corner */}
+                <span className="absolute right-4 top-4 h-3 w-3 border-r border-t border-[var(--color-border)] transition-colors duration-300 group-hover:border-[var(--color-border-orange)]" />
 
-              <span className="font-mono text-[10px] text-[var(--color-primary)]">
-                {number}
-              </span>
+                <span className="font-mono text-[10px] text-[var(--color-primary)]">
+                  {number}
+                </span>
 
-              <h3 className="mt-10 text-lg font-semibold text-[var(--color-text-primary)] sm:text-xl">
-                {title}
-              </h3>
+                <h3 className="mt-9 text-sm font-semibold tracking-[0.05em] text-[var(--color-text-primary)] sm:text-lg">
+                  {title}
+                </h3>
 
-              <div className="mt-4 h-px w-8 bg-[var(--color-primary)] transition-all duration-300 group-hover:w-14" />
+                <div className="mt-4 h-px w-7 bg-[var(--color-primary)] transition-all duration-300 group-hover:w-12" />
 
-              <span className="absolute bottom-4 right-4 font-mono text-[8px] text-[var(--color-text-muted)] opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                0{index + 1}
-              </span>
-            </motion.div>
-          ))}
-        </motion.div>
+                <span className="absolute bottom-4 right-4 font-mono text-[8px] text-[var(--color-text-muted)]">
+                  0{index + 1}
+                </span>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom label */}
+      <div className="pointer-events-none absolute bottom-5 left-1/2 flex -translate-x-1/2 items-center gap-3 font-mono text-[8px] uppercase tracking-[0.22em] text-[var(--color-text-muted)]">
+        <span className="h-px w-7 bg-[var(--color-border)]" />
+        DEVTALKS
+        <span className="h-px w-7 bg-[var(--color-border)]" />
       </div>
     </section>
   );

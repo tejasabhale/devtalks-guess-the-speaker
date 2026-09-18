@@ -1,4 +1,9 @@
+import { useEffect, useRef } from "react";
 import { motion, useReducedMotion } from "framer-motion";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(ScrollTrigger);
 
 const ROLES = ["Developers", "Designers", "Builders", "Problem solvers"];
 
@@ -11,126 +16,591 @@ const SIGNALS = [
   { top: "84%", left: "42%", delay: 5.2 },
 ];
 
+function useClubScrollAnimation(sectionRef, reduceMotion) {
+  useEffect(() => {
+    if (reduceMotion) return;
+
+    const section = sectionRef.current;
+
+    if (!section) return;
+
+    const ctx = gsap.context(() => {
+      const mm = gsap.matchMedia();
+
+      mm.add(
+        {
+          desktop: "(min-width: 1024px)",
+          tablet: "(min-width: 640px) and (max-width: 1023px)",
+          mobile: "(max-width: 639px)",
+        },
+        (context) => {
+          const { desktop, mobile } = context.conditions;
+
+          const left = section.querySelector("[data-club-left]");
+          const right = section.querySelector("[data-club-right]");
+          const eyebrow = section.querySelector("[data-club-eyebrow]");
+          const heading = section.querySelector("[data-club-heading]");
+          const divider = section.querySelector("[data-club-divider]");
+          const status = section.querySelector("[data-club-status]");
+          const roles = gsap.utils.toArray("[data-club-role]", section);
+
+          const background = section.querySelector("[data-club-background]");
+          const ghost = section.querySelector("[data-club-ghost]");
+          const ring = section.querySelector("[data-club-ring]");
+          const core = section.querySelector("[data-club-core]");
+          const grid = section.querySelector("[data-club-grid]");
+
+          if (!left || !right) return;
+
+          const sideOffset = desktop ? 90 : mobile ? 0 : 55;
+
+          /*
+           * =========================================================
+           * INITIAL STATE
+           * =========================================================
+           */
+
+          if (mobile) {
+            gsap.set(left, {
+              y: 55,
+              opacity: 0,
+              filter: "blur(12px)",
+            });
+
+            gsap.set(right, {
+              y: 65,
+              opacity: 0,
+              filter: "blur(12px)",
+            });
+          } else {
+            gsap.set(left, {
+              x: -sideOffset,
+              y: 38,
+              opacity: 0,
+              filter: "blur(12px)",
+            });
+
+            gsap.set(right, {
+              x: sideOffset,
+              y: 38,
+              opacity: 0,
+              filter: "blur(12px)",
+            });
+          }
+
+          if (eyebrow) {
+            gsap.set(eyebrow, {
+              x: mobile ? 0 : -18,
+              y: mobile ? 16 : 0,
+              opacity: 0,
+            });
+          }
+
+          if (heading) {
+            gsap.set(heading, {
+              y: 26,
+              opacity: 0,
+              scale: 0.975,
+              filter: "blur(8px)",
+            });
+          }
+
+          if (divider) {
+            gsap.set(divider, {
+              scaleX: 0,
+              transformOrigin: "left center",
+            });
+          }
+
+          if (roles.length) {
+            gsap.set(roles, {
+              y: 16,
+              opacity: 0,
+            });
+          }
+
+          if (status) {
+            gsap.set(status, {
+              y: 12,
+              opacity: 0,
+            });
+          }
+
+          /*
+           * =========================================================
+           * MAIN CONTINUOUS TIMELINE
+           * =========================================================
+           */
+
+          const timeline = gsap.timeline({
+            scrollTrigger: {
+              trigger: section,
+              start: "top 94%",
+              end: "bottom 6%",
+              scrub: 0.75,
+              invalidateOnRefresh: true,
+            },
+          });
+
+          /*
+           * =========================================================
+           * PHASE 1 — REVEAL
+           * =========================================================
+           */
+
+          if (eyebrow) {
+            timeline.to(
+              eyebrow,
+              {
+                x: 0,
+                y: 0,
+                opacity: 1,
+                ease: "none",
+                duration: 0.06,
+              },
+              0,
+            );
+          }
+
+          timeline
+            .to(
+              left,
+              {
+                x: 0,
+                y: 0,
+                opacity: 1,
+                filter: "blur(0px)",
+                ease: "none",
+                duration: 0.2,
+              },
+              0,
+            )
+            .to(
+              right,
+              {
+                x: 0,
+                y: 0,
+                opacity: 1,
+                filter: "blur(0px)",
+                ease: "none",
+                duration: 0.2,
+              },
+              0.025,
+            );
+
+          if (heading) {
+            timeline.to(
+              heading,
+              {
+                y: 0,
+                opacity: 1,
+                scale: 1,
+                filter: "blur(0px)",
+                ease: "none",
+                duration: 0.14,
+              },
+              0.07,
+            );
+          }
+
+          if (divider) {
+            timeline.to(
+              divider,
+              {
+                scaleX: 1,
+                ease: "none",
+                duration: 0.07,
+              },
+              0.16,
+            );
+          }
+
+          if (roles.length) {
+            timeline.to(
+              roles,
+              {
+                y: 0,
+                opacity: 1,
+                ease: "none",
+                stagger: 0.018,
+                duration: 0.09,
+              },
+              0.19,
+            );
+          }
+
+          if (status) {
+            timeline.to(
+              status,
+              {
+                y: 0,
+                opacity: 1,
+                ease: "none",
+                duration: 0.07,
+              },
+              0.27,
+            );
+          }
+
+          /*
+           * =========================================================
+           * PHASE 2 — UNIFIED MOMENT
+           * =========================================================
+           */
+
+          timeline
+            .to(
+              left,
+              {
+                y: mobile ? -10 : -16,
+                ease: "none",
+                duration: 0.12,
+              },
+              0.31,
+            )
+            .to(
+              right,
+              {
+                y: mobile ? -10 : -16,
+                ease: "none",
+                duration: 0.12,
+              },
+              0.31,
+            );
+
+          if (heading) {
+            timeline.to(
+              heading,
+              {
+                y: mobile ? -6 : -10,
+                ease: "none",
+                duration: 0.12,
+              },
+              0.31,
+            );
+          }
+
+          /*
+           * =========================================================
+           * PHASE 3 — CONTINUOUS PARALLAX
+           * =========================================================
+           */
+
+          timeline
+            .to(
+              left,
+              {
+                x: mobile ? 0 : -16,
+                y: mobile ? -42 : -72,
+                ease: "none",
+                duration: 0.42,
+              },
+              0.43,
+            )
+            .to(
+              right,
+              {
+                x: mobile ? 0 : 16,
+                y: mobile ? -24 : -38,
+                ease: "none",
+                duration: 0.42,
+              },
+              0.43,
+            );
+
+          if (heading) {
+            timeline.to(
+              heading,
+              {
+                y: mobile ? -25 : -48,
+                scale: mobile ? 0.985 : 0.97,
+                ease: "none",
+                duration: 0.42,
+              },
+              0.43,
+            );
+          }
+
+          /*
+           * =========================================================
+           * PHASE 4 — ENDING ANIMATION
+           * =========================================================
+           *
+           * The section begins visually leaving before it is
+           * completely out of the viewport.
+           */
+
+          timeline
+            .to(
+              left,
+              {
+                x: mobile ? 0 : -28,
+                y: mobile ? -105 : -125,
+                opacity: 0.52,
+                scale: mobile ? 0.97 : 0.94,
+                filter: "blur(4px)",
+                ease: "none",
+                duration: 0.2,
+              },
+              0.78,
+            )
+            .to(
+              right,
+              {
+                x: mobile ? 0 : 28,
+                y: mobile ? -82 : -92,
+                opacity: 0.52,
+                scale: mobile ? 0.97 : 0.95,
+                filter: "blur(4px)",
+                ease: "none",
+                duration: 0.2,
+              },
+              0.78,
+            );
+
+          if (heading) {
+            timeline.to(
+              heading,
+              {
+                y: mobile ? -55 : -75,
+                scale: mobile ? 0.95 : 0.94,
+                opacity: 0.58,
+                filter: "blur(3px)",
+                ease: "none",
+                duration: 0.2,
+              },
+              0.78,
+            );
+          }
+
+          if (eyebrow) {
+            timeline.to(
+              eyebrow,
+              {
+                y: mobile ? -40 : -48,
+                opacity: 0.4,
+                ease: "none",
+                duration: 0.2,
+              },
+              0.78,
+            );
+          }
+
+          if (divider) {
+            timeline.to(
+              divider,
+              {
+                scaleX: 0.55,
+                opacity: 0.35,
+                ease: "none",
+                duration: 0.2,
+              },
+              0.78,
+            );
+          }
+
+          if (roles.length) {
+            timeline.to(
+              roles,
+              {
+                y: mobile ? -30 : -36,
+                opacity: 0.38,
+                ease: "none",
+                duration: 0.2,
+              },
+              0.78,
+            );
+          }
+
+          if (status) {
+            timeline.to(
+              status,
+              {
+                y: mobile ? -26 : -30,
+                opacity: 0.35,
+                ease: "none",
+                duration: 0.2,
+              },
+              0.78,
+            );
+          }
+
+          /*
+           * =========================================================
+           * BACKGROUND ENDING
+           * =========================================================
+           */
+
+          if (background) {
+            timeline.to(
+              background,
+              {
+                x: mobile ? 15 : 30,
+                y: mobile ? -45 : -70,
+                scale: 1.12,
+                opacity: 0.5,
+                ease: "none",
+                duration: 1,
+              },
+              0,
+            );
+          }
+
+          if (ghost) {
+            timeline.to(
+              ghost,
+              {
+                x: mobile ? -12 : -30,
+                y: mobile ? -35 : -55,
+                scale: 1.06,
+                opacity: 0.045,
+                ease: "none",
+                duration: 1,
+              },
+              0,
+            );
+          }
+
+          if (ring) {
+            timeline.to(
+              ring,
+              {
+                rotation: 28,
+                scale: 1.08,
+                xPercent: mobile ? 2 : 4,
+                yPercent: -3,
+                ease: "none",
+                duration: 1,
+              },
+              0,
+            );
+          }
+
+          if (core) {
+            timeline.to(
+              core,
+              {
+                scale: 1.14,
+                opacity: 0.6,
+                ease: "none",
+                duration: 1,
+              },
+              0,
+            );
+          }
+
+          if (grid) {
+            timeline.to(
+              grid,
+              {
+                x: mobile ? 10 : 20,
+                y: mobile ? -12 : -20,
+                ease: "none",
+                duration: 1,
+              },
+              0,
+            );
+          }
+
+          requestAnimationFrame(() => {
+            ScrollTrigger.refresh();
+          });
+        },
+      );
+    }, sectionRef);
+
+    return () => {
+      ctx.revert();
+    };
+  }, [sectionRef, reduceMotion]);
+
+  return null;
+}
+
 export default function AboutClub() {
   const reduceMotion = useReducedMotion();
+  const sectionRef = useRef(null);
+
+  useClubScrollAnimation(sectionRef, Boolean(reduceMotion));
 
   return (
     <section
+      ref={sectionRef}
       id="devkraft"
-      className="relative flex min-h-screen w-full items-center overflow-hidden border-y border-[var(--color-border)] bg-[#050505] px-5 py-20 sm:px-8 sm:py-24 lg:px-10 lg:py-16"
+      className="relative flex min-h-[100svh] w-full items-center overflow-hidden border-y border-[var(--color-border)] bg-[#030303] px-5 py-16 sm:px-8 sm:py-20 lg:px-10"
     >
-      {/* Premium signal-field background */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        {/* Fine particles */}
+      {/* =========================================================
+          MINIMAL BACKGROUND
+      ========================================================== */}
+
+      <div
+        data-club-background
+        className="pointer-events-none absolute inset-0 overflow-hidden will-change-transform"
+        aria-hidden="true"
+      >
+        <div className="absolute left-[18%] top-[20%] h-[28rem] w-[28rem] rounded-full bg-[radial-gradient(circle,rgba(255,90,31,0.075),transparent_68%)] blur-3xl" />
+
         <div
-          className="absolute inset-0 opacity-[0.035]"
+          className="absolute inset-0 opacity-[0.022]"
           style={{
             backgroundImage: `
               radial-gradient(
-                circle,
-                rgba(255, 255, 255, 0.9) 0.7px,
-                transparent 0.9px
+                circle at 1px 1px,
+                rgba(244,240,232,0.9) 0.7px,
+                transparent 0.8px
               )
             `,
-            backgroundSize: "28px 28px",
+            backgroundSize: "30px 30px",
           }}
         />
 
-        {/* Large orbital rings */}
-        <motion.div
-          animate={
-            reduceMotion
-              ? {}
-              : {
-                  rotate: 360,
-                }
-          }
-          transition={
-            reduceMotion
-              ? {}
-              : {
-                  duration: 70,
-                  repeat: Infinity,
-                  ease: "linear",
-                }
-          }
-          className="absolute left-1/2 top-1/2 h-[42rem] w-[42rem] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/[0.035]"
-        >
-          <span className="absolute left-[8%] top-[18%] h-1.5 w-1.5 rounded-full bg-[var(--color-primary)] opacity-70" />
-        </motion.div>
-
-        <motion.div
-          animate={
-            reduceMotion
-              ? {}
-              : {
-                  rotate: -360,
-                }
-          }
-          transition={
-            reduceMotion
-              ? {}
-              : {
-                  duration: 95,
-                  repeat: Infinity,
-                  ease: "linear",
-                }
-          }
-          className="absolute left-1/2 top-1/2 h-[58rem] w-[58rem] -translate-x-1/2 -translate-y-1/2 rounded-full border border-[var(--color-primary)]/[0.045]"
-        >
-          <span className="absolute right-[13%] top-[30%] h-1 w-1 rounded-full bg-[var(--color-primary-light)] opacity-60" />
-        </motion.div>
-
-        <motion.div
-          animate={
-            reduceMotion
-              ? {}
-              : {
-                  rotate: 360,
-                }
-          }
-          transition={
-            reduceMotion
-              ? {}
-              : {
-                  duration: 120,
-                  repeat: Infinity,
-                  ease: "linear",
-                }
-          }
-          className="absolute left-1/2 top-1/2 h-[72rem] w-[72rem] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/[0.02]"
+        <div
+          data-club-grid
+          className="absolute -inset-[15%] opacity-[0.026] will-change-transform"
+          style={{
+            backgroundImage: `
+              linear-gradient(
+                rgba(255,90,31,0.18) 1px,
+                transparent 1px
+              ),
+              linear-gradient(
+                90deg,
+                rgba(255,90,31,0.18) 1px,
+                transparent 1px
+              )
+            `,
+            backgroundSize: "105px 105px",
+            transform: "perspective(900px) rotateX(64deg) scale(1.45)",
+            transformOrigin: "center center",
+          }}
         />
 
-        {/* Moving signal lines */}
-        {!reduceMotion && (
-          <>
-            <motion.span
-              initial={{ x: "-120%", opacity: 0 }}
-              animate={{ x: "220%", opacity: [0, 0.18, 0] }}
-              transition={{
-                duration: 10,
-                repeat: Infinity,
-                repeatDelay: 3,
-                ease: "linear",
-              }}
-              className="absolute left-0 top-[24%] h-px w-[28rem] bg-gradient-to-r from-transparent via-[var(--color-primary)] to-transparent"
-            />
+        {/* Ghost section number */}
+        <div
+          data-club-ghost
+          className="absolute right-[-2%] top-[7%] select-none font-mono text-[18rem] font-bold leading-none tracking-[-0.12em] text-white/[0.025] will-change-transform sm:text-[24rem]"
+        >
+          01
+        </div>
 
-            <motion.span
-              initial={{ x: "120%", opacity: 0 }}
-              animate={{ x: "-220%", opacity: [0, 0.12, 0] }}
-              transition={{
-                duration: 13,
-                repeat: Infinity,
-                repeatDelay: 2,
-                ease: "linear",
-              }}
-              className="absolute right-0 top-[74%] h-px w-[24rem] bg-gradient-to-r from-transparent via-[var(--color-primary-light)] to-transparent"
-            />
-          </>
-        )}
+        {/* Main orbital ring */}
+        <div
+          data-club-ring
+          className="absolute left-[60%] top-1/2 h-[34rem] w-[34rem] -translate-x-1/2 -translate-y-1/2 rounded-full border border-[var(--color-primary)]/[0.055] will-change-transform sm:h-[47rem] sm:w-[47rem]"
+        >
+          <span className="absolute left-[7%] top-[17%] h-1.5 w-1.5 rounded-full bg-[var(--color-primary)] shadow-[0_0_12px_var(--color-primary)]" />
+        </div>
 
-        {/* Floating signal points */}
+        {/* Inner ring */}
+        <div className="absolute left-[60%] top-1/2 h-[13rem] w-[13rem] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/[0.03] sm:h-[18rem] sm:w-[18rem]" />
+
+        {/* Core */}
+        <div
+          data-club-core
+          className="absolute left-[60%] top-1/2 h-[5rem] w-[5rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(255,90,31,0.10),transparent_72%)] opacity-40 blur-xl will-change-transform sm:h-[7rem] sm:w-[7rem]"
+        />
+
+        {/* Floating points */}
         {SIGNALS.map((signal, index) => (
           <motion.span
             key={index}
@@ -143,15 +613,15 @@ export default function AboutClub() {
               reduceMotion
                 ? {}
                 : {
-                    opacity: [0.08, 0.55, 0.08],
-                    scale: [0.8, 1.5, 0.8],
+                    opacity: [0.08, 0.4, 0.08],
+                    scale: [0.8, 1.25, 0.8],
                   }
             }
             transition={
               reduceMotion
                 ? {}
                 : {
-                    duration: 3.5,
+                    duration: 4,
                     delay: signal.delay,
                     repeat: Infinity,
                     ease: "easeInOut",
@@ -160,87 +630,68 @@ export default function AboutClub() {
           />
         ))}
 
-        {/* Technical corner markers */}
-        <motion.div
-          className="absolute left-[5%] top-[12%] h-10 w-10 border-l border-t border-[var(--color-primary)]/[0.12]"
-          animate={
-            reduceMotion
-              ? {}
-              : {
-                  opacity: [0.2, 0.55, 0.2],
-                }
-          }
-          transition={
-            reduceMotion
-              ? {}
-              : {
-                  duration: 4,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }
-          }
-        />
-
-        <motion.div
-          className="absolute bottom-[12%] right-[5%] h-10 w-10 border-b border-r border-[var(--color-primary)]/[0.12]"
-          animate={
-            reduceMotion
-              ? {}
-              : {
-                  opacity: [0.2, 0.5, 0.2],
-                }
-          }
-          transition={
-            reduceMotion
-              ? {}
-              : {
-                  duration: 5,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }
-          }
-        />
-
-        {/* Very subtle center pulse */}
+        {/* Thin signal lines */}
         {!reduceMotion && (
-          <motion.div
-            initial={{ opacity: 0.02, scale: 0.9 }}
-            animate={{
-              opacity: [0.02, 0.06, 0.02],
-              scale: [0.9, 1.05, 0.9],
-            }}
-            transition={{
-              duration: 8,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-            className="absolute left-1/2 top-1/2 h-[20rem] w-[20rem] -translate-x-1/2 -translate-y-1/2 rounded-full border border-[var(--color-primary)]/[0.04]"
-          />
+          <>
+            <motion.span
+              initial={{
+                x: "-120%",
+                opacity: 0,
+              }}
+              animate={{
+                x: "240%",
+                opacity: [0, 0.12, 0],
+              }}
+              transition={{
+                duration: 12,
+                repeat: Infinity,
+                repeatDelay: 3,
+                ease: "linear",
+              }}
+              className="absolute left-0 top-[24%] h-px w-[24rem] bg-gradient-to-r from-transparent via-[var(--color-primary)] to-transparent"
+            />
+
+            <motion.span
+              initial={{
+                x: "120%",
+                opacity: 0,
+              }}
+              animate={{
+                x: "-240%",
+                opacity: [0, 0.08, 0],
+              }}
+              transition={{
+                duration: 14,
+                repeat: Infinity,
+                repeatDelay: 4,
+                ease: "linear",
+              }}
+              className="absolute right-0 top-[72%] h-px w-[22rem] bg-gradient-to-r from-transparent via-[var(--color-primary-light)] to-transparent"
+            />
+          </>
         )}
+
+        {/* Corner brackets */}
+        <div className="absolute left-6 top-7 h-8 w-8 border-l border-t border-[var(--color-primary)]/[0.1] sm:left-8" />
+
+        <div className="absolute right-6 top-7 h-8 w-8 border-r border-t border-[var(--color-primary)]/[0.1] sm:right-8" />
+
+        <div className="absolute bottom-7 left-6 h-8 w-8 border-b border-l border-[var(--color-primary)]/[0.08] sm:left-8" />
+
+        <div className="absolute bottom-7 right-6 h-8 w-8 border-b border-r border-[var(--color-primary)]/[0.08] sm:right-8" />
+
+        {/* Top accent */}
+        <div className="absolute left-1/2 top-0 h-px w-[58%] -translate-x-1/2 bg-gradient-to-r from-transparent via-[var(--color-primary)]/[0.22] to-transparent" />
       </div>
 
-      <div className="relative z-10 mx-auto grid w-full max-w-[1600px] items-center gap-12 sm:gap-16 lg:grid-cols-[0.9fr_1.1fr] lg:gap-20 xl:gap-24">
-        {/* Left */}
-        <motion.div
-          initial={{
-            opacity: 0,
-            x: reduceMotion ? 0 : -30,
-          }}
-          whileInView={{
-            opacity: 1,
-            x: 0,
-          }}
-          viewport={{
-            once: true,
-            amount: 0.25,
-          }}
-          transition={{
-            duration: 0.75,
-            ease: [0.16, 1, 0.3, 1],
-          }}
-          className="max-w-xl"
-        >
-          <div className="flex items-center gap-3">
+      {/* =========================================================
+          CONTENT
+      ========================================================== */}
+
+      <div className="relative z-10 mx-auto grid min-h-[calc(100svh-4rem)] w-full max-w-[1500px] items-center gap-12 sm:min-h-[calc(100svh-5rem)] sm:gap-14 lg:grid-cols-[0.9fr_1.1fr] lg:gap-20 xl:gap-28">
+        {/* LEFT */}
+        <div data-club-left className="will-change-transform">
+          <div data-club-eyebrow className="flex items-center gap-3">
             <span className="h-px w-7 bg-[var(--color-primary)]" />
 
             <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-[var(--color-primary-light)] sm:text-[10px]">
@@ -248,10 +699,13 @@ export default function AboutClub() {
             </span>
           </div>
 
-          <h2 className="mt-5 text-4xl font-bold leading-[0.96] tracking-[-0.05em] text-[var(--color-text-primary)] sm:text-5xl md:text-6xl lg:text-[3.8rem] xl:text-[4.25rem]">
+          <h2
+            data-club-heading
+            className="mt-5 max-w-xl text-[2.9rem] font-semibold leading-[0.96] tracking-[-0.055em] text-[var(--color-text-primary)] sm:text-5xl md:text-6xl lg:text-[4rem] xl:text-[4.4rem]"
+          >
             More than
             <br />a club.
-            <span className="mt-2 block text-[var(--color-text-secondary)]">
+            <span className="mt-3 block text-[var(--color-text-secondary)]">
               It's where
               <br />
               ideas get
@@ -262,45 +716,19 @@ export default function AboutClub() {
             </span>
           </h2>
 
-          <motion.div
-            initial={{ width: 0 }}
-            whileInView={{ width: 72 }}
-            viewport={{ once: true }}
-            transition={{
-              duration: 0.7,
-              delay: 0.2,
-              ease: [0.16, 1, 0.3, 1],
-            }}
-            className="mt-7 h-px bg-[var(--color-primary-light)] sm:mt-8"
+          <div
+            data-club-divider
+            className="mt-7 h-px w-[72px] origin-left bg-[var(--color-primary-light)] sm:mt-8"
           />
 
           <div className="mt-4 font-mono text-[8px] uppercase tracking-[0.22em] text-[var(--color-text-muted)] sm:text-[9px]">
             CURIOUS MINDS <span className="text-[var(--color-primary)]">→</span>{" "}
             REAL BUILDS
           </div>
-        </motion.div>
+        </div>
 
-        {/* Right */}
-        <motion.div
-          initial={{
-            opacity: 0,
-            y: reduceMotion ? 0 : 25,
-          }}
-          whileInView={{
-            opacity: 1,
-            y: 0,
-          }}
-          viewport={{
-            once: true,
-            amount: 0.25,
-          }}
-          transition={{
-            duration: 0.75,
-            delay: 0.08,
-            ease: [0.16, 1, 0.3, 1],
-          }}
-          className="w-full"
-        >
+        {/* RIGHT */}
+        <div data-club-right className="w-full will-change-transform">
           <div className="max-w-3xl">
             <p className="text-lg font-medium leading-relaxed text-[var(--color-text-primary)] sm:text-xl md:text-2xl">
               DevKraft Club brings together students who are curious about
@@ -326,6 +754,7 @@ export default function AboutClub() {
                     className="flex items-baseline gap-3 sm:gap-4"
                   >
                     <motion.span
+                      data-club-role
                       whileHover={
                         reduceMotion
                           ? {}
@@ -365,20 +794,8 @@ export default function AboutClub() {
               </div>
             </div>
 
-            <motion.div
-              initial={{
-                opacity: 0,
-                y: reduceMotion ? 0 : 10,
-              }}
-              whileInView={{
-                opacity: 1,
-                y: 0,
-              }}
-              viewport={{ once: true }}
-              transition={{
-                delay: 0.35,
-                duration: 0.5,
-              }}
+            <div
+              data-club-status
               className="mt-8 flex items-center gap-3 sm:mt-9"
             >
               <span className="relative flex h-2 w-2">
@@ -392,14 +809,15 @@ export default function AboutClub() {
               <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-[var(--color-text-muted)] sm:text-[9px]">
                 Student-led developer community
               </span>
-            </motion.div>
+            </div>
           </div>
-        </motion.div>
+        </div>
       </div>
 
-      <div className="pointer-events-none absolute bottom-6 left-1/2 hidden -translate-x-1/2 items-center gap-3 font-mono text-[8px] uppercase tracking-[0.22em] text-[var(--color-text-muted)] sm:flex">
+      {/* Bottom label */}
+      <div className="pointer-events-none absolute bottom-5 left-1/2 flex -translate-x-1/2 items-center gap-3 font-mono text-[8px] uppercase tracking-[0.22em] text-[var(--color-text-muted)]">
         <span className="h-px w-7 bg-[var(--color-border)]" />
-        COMMUNITY
+        DEVKRAFT
         <span className="h-px w-7 bg-[var(--color-border)]" />
       </div>
     </section>

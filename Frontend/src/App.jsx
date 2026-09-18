@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { ReactLenis, useLenis } from "lenis/react";
+import "lenis/dist/lenis.css";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
@@ -21,6 +22,7 @@ function LenisGSAPConnector() {
     lenis.on("scroll", ScrollTrigger.update);
 
     gsap.ticker.add(update);
+
     gsap.ticker.lagSmoothing(0);
 
     return () => {
@@ -43,9 +45,9 @@ function App() {
     <ReactLenis
       root
       options={{
-        lerp: 0.1,
+        lerp: 0.075,
         smoothWheel: true,
-        wheelMultiplier: 1,
+        wheelMultiplier: 0.85,
         touchMultiplier: 1,
         autoRaf: false,
       }}

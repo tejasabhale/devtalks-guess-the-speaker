@@ -1,35 +1,85 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import { useLenis } from "lenis/react";
 
 const ScrollManager = () => {
   const { pathname, hash } = useLocation();
+  const lenis = useLenis();
 
   useEffect(() => {
-    if (hash) {
-      const targetId = hash.substring(1);
+    if (!lenis) return;
 
-      const scrollToTarget = () => {
+    const reduceMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+
+    /*
+     * Prevent the browser from restoring a previous scroll
+     * position when changing routes.
+     */
+    if ("scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
+
+    const scrollToTarget = () => {
+      /*
+       * =========================================================
+       * HASH SCROLL
+       * =========================================================
+       *
+       * Example:
+       * /#guess
+       *
+       * Lenis handles the movement instead of native anchor
+       * scrolling.
+       */
+      if (hash) {
+        const targetId = decodeURIComponent(hash.substring(1));
+
         const element = document.getElementById(targetId);
 
         if (!element) return;
 
-        element.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
+        lenis.scrollTo(element, {
+          duration: reduceMotion ? 0 : 1.45,
+          offset: 0,
+          immediate: reduceMotion,
+          lock: false,
+          force: true,
+          easing: (t) => 1 - Math.pow(1 - t, 4),
         });
-      };
 
-      const timeout = setTimeout(scrollToTarget, 0);
+        return;
+      }
 
-      return () => clearTimeout(timeout);
-    }
+      /*
+       * =========================================================
+       * NORMAL ROUTE CHANGE
+       * =========================================================
+       *
+       * No hash means the page should return to the top.
+       */
+      lenis.scrollTo(0, {
+        duration: reduceMotion ? 0 : 1,
+        immediate: reduceMotion,
+        lock: false,
+        force: true,
+        easing: (t) => 1 - Math.pow(1 - t, 4),
+      });
+    };
 
-    window.scrollTo({
-      top: 0,
-      left: 0,
-      behavior: "smooth",
+    /*
+     * Wait one frame so the new route/section has already
+     * been mounted before calculating its position.
+     */
+    const frame = requestAnimationFrame(() => {
+      requestAnimationFrame(scrollToTarget);
     });
-  }, [pathname, hash]);
+
+    return () => {
+      cancelAnimationFrame(frame);
+    };
+  }, [pathname, hash, lenis]);
 
   return null;
 };
